@@ -7,3 +7,4 @@ edition = "2018"
 [dependencies]
 walkdir = "2.2"
 image = "0.21"
+yaml-rust = "0.4"
