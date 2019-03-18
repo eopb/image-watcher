@@ -1,11 +1,14 @@
-use std::convert::TryFrom;
-use std::env;
-use std::fs;
-use std::path::Path;
-use std::time::SystemTime;
-use std::{collections::HashMap, fs::File, io::prelude::*, iter::Iterator, str::FromStr};
-use std::{thread, time};
-use yaml_rust::{yaml::Hash, Yaml, YamlLoader};
+use std::{
+    convert::TryFrom,
+    fs::{self, File},
+    io::prelude::*,
+    iter::Iterator,
+    path::Path,
+    thread, time,
+    time::SystemTime,
+};
+use yaml_rust::{Yaml, YamlLoader};
+
 #[derive(Debug, Clone)]
 struct FileWatched {
     file: FileWatch,
@@ -24,7 +27,7 @@ enum Size {
 }
 
 fn main() {
-    let files_list = parse_config();
+    let files_list = parse_config().unwrap();
 
     let mut files_list: Vec<FileWatched> = files_list
         .into_iter()
@@ -65,21 +68,22 @@ fn resize_image(path: &str, output: &str, size: &Size) {
     img.save(output).unwrap();
 }
 
-fn parse_config() -> Vec<FileWatch> {
-    {
+fn parse_config() -> Result<Vec<FileWatch>, String> {
+    Ok({
         YamlLoader::load_from_str(&{
             let mut contents = String::new();
 
             File::open("image_watcher.yaml")
-                .unwrap()
-                .read_to_string(&mut contents);
+                .wrap("Failed to open config file.")?
+                .read_to_string(&mut contents)
+                .wrap("Failed to open read file.")?;
             contents
         })
-        .expect("1")[0]
+        .wrap("Failed to parse config file.")?[0]
             .clone()
     }
     .into_hash()
-    .expect("2")
+    .wrap("Base of the file not a hash.")?
     .get(&Yaml::String("files".to_string()))
     .expect("12")
     .clone()
@@ -114,5 +118,26 @@ fn parse_config() -> Vec<FileWatch> {
             ),
         },
     })
-    .collect()
+    .collect())
+}
+
+pub trait WrapError<T> {
+    fn wrap(self, s: &str) -> Result<T, String>;
+}
+
+impl<T, E> WrapError<T> for Result<T, E> {
+    fn wrap(self, s: &str) -> Result<T, String> {
+        match self {
+            Ok(t) => Ok(t),
+            Err(_) => Err(s.to_string()),
+        }
+    }
+}
+impl<T> WrapError<T> for Option<T> {
+    fn wrap(self, s: &str) -> Result<T, String> {
+        match self {
+            Some(t) => Ok(t),
+            None => Err(s.to_string()),
+        }
+    }
 }
