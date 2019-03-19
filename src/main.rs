@@ -49,7 +49,7 @@ fn main() {
                 resize_image(&file.file.path, &file.file.output, &file.file.size)
             }
         }
-        thread::sleep(time::Duration::from_secs(10))
+        thread::sleep(time::Duration::from_millis(1000))
     }
     println!("{:#?}", files_list);
     // resize_image("hand_and_book.JPG")
