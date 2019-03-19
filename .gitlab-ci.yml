@@ -20,23 +20,27 @@ clean-code:
 check:
   stage: check
   script:
+    - rustup default nightly
     - cargo check
 
 
 unittests:
   stage: test
   script:
+    - rustup default nightly
     - cargo test --release
 
 benchmarktests:
   stage: test
   script:
+    - rustup default nightly
     - cargo bench
 
 
 linux-optimized:
   stage: deploy-examples
   script:
+    - rustup default nightly
     - cargo build --examples --release
     - rm -r -f files
     - mkdir files
@@ -50,6 +54,7 @@ linux-optimized:
 windows-optimized:
   stage: deploy-examples
   script:
+    - rustup default nightly
     - apt-get update
     - apt-get install gcc -y
     - apt-get install gcc-mingw-w64-x86-64 -y
@@ -73,6 +78,7 @@ windows-optimized:
 cratesio:
   stage: publish
   script:
+    - rustup default nightly
     - rm -r -f files
     - cargo login $CARGO_LOGIN
     - cargo package
@@ -87,6 +93,7 @@ cratesio:
 clippy:
   stage: post-run
   script:
+    - rustup default nightly
     - rustup component add clippy-preview
     - cargo clippy
   allow_failure: true
