@@ -51,7 +51,7 @@ fn main() {
             }
         }
         thread::sleep(time::Duration::from_millis(1000))
-    
+    }
 }
 
 fn resize_image(path: &str, output: &str, size: &Size) -> Result<(), String> {
