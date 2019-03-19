@@ -44,6 +44,9 @@ fn main() {
             time: when_modified(Path::new(&x.path)).unwrap(),
         })
         .collect();
+    for file in files_list.clone().iter() {
+        resize_image(&file.file.path, &file.file.output, &file.file.size).unwrap()
+    }
     loop {
         for (index, file) in files_list.clone().iter().enumerate() {
             let modified = match when_modified(Path::new(&file.file.path)) {
@@ -52,7 +55,6 @@ fn main() {
             };
             if file.time != modified {
                 files_list[index].time = modified;
-                println!("updating {}", file.file.path);
                 resize_image(&file.file.path, &file.file.output, &file.file.size).unwrap()
             }
         }
@@ -61,7 +63,7 @@ fn main() {
 }
 
 fn resize_image(path: &str, output: &str, size: &Size) -> Result<(), String> {
-    fs::remove_file(output).wrap(&format!("failed to remove old file {}", path))?;
+    println!("updating {} to {}", path, output);
     let path = Path::new(path);
     let img = image::open(path).wrap(&format!("failed to open file {}", path.display()))?;
     let size = match size {
@@ -69,7 +71,8 @@ fn resize_image(path: &str, output: &str, size: &Size) -> Result<(), String> {
         Size::Width(x) => (*x, u32::max_value()),
         Size::Height(x) => (u32::max_value(), *x),
     };
-    img.resize(size.0, size.1, image::FilterType::Gaussian);
+    println!("{:?}", size);
+    let img = img.resize(size.0, size.1, image::FilterType::Gaussian);
     img.save(output).unwrap();
     Ok(())
 }
@@ -139,7 +142,15 @@ fn parse_config() -> Result<Vec<FileWatch>, String> {
                         index
                     ))?,
                     None => format!(
-                        "{}.min.{}",
+                        "{}{}.min.{}",
+                        {
+                            let parent = Path::new(&path).parent().unwrap().to_str().unwrap();
+                            if parent.is_empty() {
+                                parent.to_string()
+                            } else {
+                                format!("{}/", parent)
+                            }
+                        },
                         Path::new(&path).file_stem().unwrap().to_str().unwrap(),
                         Path::new(&path).extension().unwrap().to_str().unwrap()
                     ),
