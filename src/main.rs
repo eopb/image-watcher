@@ -28,22 +28,28 @@ enum Size {
 }
 
 fn main() {
-    let files_list = parse_config().unwrap();
+    println!("Parsing config file image_watcher.yaml");
+    let files_list = match parse_config() {
+        Ok(x) => x,
+        Err(e) => {
+            println!("Error: {}", e);
+            return ();
+        }
+    };
 
     let mut files_list: Vec<FileWatched> = files_list
         .into_iter()
         .map(|x| FileWatched {
             file: x.clone(),
-            time: Path::new(&x.path).metadata().unwrap().modified().unwrap(),
+            time: when_modified(Path::new(&x.path)).unwrap(),
         })
         .collect();
     loop {
         for (index, file) in files_list.clone().iter().enumerate() {
-            let modified = Path::new(&file.file.path)
-                .metadata()
-                .unwrap()
-                .modified()
-                .unwrap();
+            let modified = match when_modified(Path::new(&file.file.path)) {
+                Ok(s) => s,
+                Err(_) => return (),
+            };
             if file.time != modified {
                 files_list[index].time = modified;
                 println!("updating {}", file.file.path);
@@ -66,6 +72,19 @@ fn resize_image(path: &str, output: &str, size: &Size) -> Result<(), String> {
     img.resize(size.0, size.1, image::FilterType::Gaussian);
     img.save(output).unwrap();
     Ok(())
+}
+
+fn when_modified(path: &Path) -> Result<SystemTime, String> {
+    Ok::<_, String>(
+        Path::new(path)
+            .metadata()
+            .wrap(&format!("failed to open file {} metadata", path.display()))?
+            .modified()
+            .wrap(&format!(
+                "failed to find files date modifide {}",
+                path.display()
+            )),
+    )?
 }
 
 fn parse_config() -> Result<Vec<FileWatch>, String> {
