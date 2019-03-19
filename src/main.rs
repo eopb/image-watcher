@@ -69,7 +69,7 @@ fn resize_image(path: &str, output: &str, size: &Size) {
 }
 
 fn parse_config() -> Result<Vec<FileWatch>, String> {
-    Ok({
+    let files_list = {
         YamlLoader::load_from_str(&{
             let mut contents = String::new();
 
@@ -85,40 +85,57 @@ fn parse_config() -> Result<Vec<FileWatch>, String> {
     .into_hash()
     .wrap("Base of the file not a hash.")?
     .get(&Yaml::String("files".to_string()))
-    .expect("12")
+    .wrap("No files section in config file.")?
     .clone()
     .into_vec()
-    .expect("7")
-    .into_iter()
-    .map(|x| x.clone().into_hash().expect("3"))
-    .map(|x| FileWatch {
-        path: x
-            .get(&Yaml::String("path".to_string()))
-            .expect("4")
-            .clone()
-            .into_string()
-            .expect("5"),
-        output: x
-            .get(&Yaml::String("output".to_string()))
-            .expect("6")
-            .clone()
-            .into_string()
-            .expect("7"),
-        size: match x.get(&Yaml::String("width".to_string())) {
-            Some(x) => Size::Width(u32::try_from(x.clone().into_i64().expect("7")).unwrap()),
-            None => Size::Height(
-                u32::try_from(
-                    x.get(&Yaml::String("height".to_string()))
-                        .unwrap()
-                        .clone()
-                        .into_i64()
-                        .expect("7"),
-                )
-                .unwrap(),
-            ),
-        },
-    })
-    .collect())
+    .wrap("Files section in config is not a list.")?
+    .into_iter();
+    let mut files_as_hash_list = Vec::new();
+    for (index, file) in files_list.enumerate() {
+        files_as_hash_list.push(
+            file.clone()
+                .into_hash()
+                .wrap(&format!("file index {} is not a hash", index))?,
+        )
+    }
+    let mut files_list = Vec::new();
+    for (index, file) in files_as_hash_list.into_iter().enumerate() {
+        files_list.push({
+            let path = file
+                .get(&Yaml::String("path".to_string()))
+                .expect("4")
+                .clone()
+                .into_string()
+                .expect("5");
+            FileWatch {
+                path: path.clone(),
+                output: match file.get(&Yaml::String("output".to_string())) {
+                    Some(x) => x.clone().into_string().expect("7"),
+                    None => format!(
+                        "{}.min.{}",
+                        Path::new(&path).file_stem().unwrap().to_str().unwrap(),
+                        Path::new(&path).extension().unwrap().to_str().unwrap()
+                    ),
+                },
+                size: match file.get(&Yaml::String("width".to_string())) {
+                    Some(x) => {
+                        Size::Width(u32::try_from(x.clone().into_i64().expect("7")).unwrap())
+                    }
+                    None => Size::Height(
+                        u32::try_from(
+                            file.get(&Yaml::String("height".to_string()))
+                                .unwrap()
+                                .clone()
+                                .into_i64()
+                                .expect("7"),
+                        )
+                        .unwrap(),
+                    ),
+                },
+            }
+        })
+    }
+    Ok(files_list)
 }
 
 pub trait WrapError<T> {
