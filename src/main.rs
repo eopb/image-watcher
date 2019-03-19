@@ -24,6 +24,7 @@ struct FileWatch {
 enum Size {
     Width(u32),
     Height(u32),
+    WidthHeight(u32, u32),
 }
 
 fn main() {
@@ -46,26 +47,25 @@ fn main() {
             if file.time != modified {
                 files_list[index].time = modified;
                 println!("updating {}", file.file.path);
-                resize_image(&file.file.path, &file.file.output, &file.file.size)
+                resize_image(&file.file.path, &file.file.output, &file.file.size).unwrap()
             }
         }
         thread::sleep(time::Duration::from_millis(1000))
-    }
-    println!("{:#?}", files_list);
-    // resize_image("hand_and_book.JPG")
+    
 }
 
-fn resize_image(path: &str, output: &str, size: &Size) {
-    if fs::remove_file(output).is_err() {
-        println!("Failed to remove old file")
-    }
-    let image_path = Path::new(path);
-    let img = image::open(image_path).unwrap();
-    let img = match size {
-        Size::Width(x) => img.resize(*x, u32::max_value(), image::FilterType::Gaussian),
-        Size::Height(x) => img.resize(u32::max_value(), *x, image::FilterType::Gaussian),
+fn resize_image(path: &str, output: &str, size: &Size) -> Result<(), String> {
+    fs::remove_file(output).wrap(&format!("failed to remove old file {}", path))?;
+    let path = Path::new(path);
+    let img = image::open(path).wrap(&format!("failed to open file {}", path.display()))?;
+    let size = match size {
+        Size::WidthHeight(x, y) => (*x, *y),
+        Size::Width(x) => (*x, u32::max_value()),
+        Size::Height(x) => (u32::max_value(), *x),
     };
+    img.resize(size.0, size.1, image::FilterType::Gaussian);
     img.save(output).unwrap();
+    Ok(())
 }
 
 fn parse_config() -> Result<Vec<FileWatch>, String> {
@@ -103,34 +103,42 @@ fn parse_config() -> Result<Vec<FileWatch>, String> {
         files_list.push({
             let path = file
                 .get(&Yaml::String("path".to_string()))
-                .expect("4")
+                .wrap(&format!("file index {} has no path", index))?
                 .clone()
                 .into_string()
-                .expect("5");
+                .wrap(&format!(
+                    "file index {} has a path that is not a string",
+                    index
+                ))?;
+            let width = file.get(&Yaml::String("width".to_string()));
+            let height = file.get(&Yaml::String("height".to_string()));
             FileWatch {
                 path: path.clone(),
                 output: match file.get(&Yaml::String("output".to_string())) {
-                    Some(x) => x.clone().into_string().expect("7"),
+                    Some(x) => x.clone().into_string().wrap(&format!(
+                        "file index {} has a output path that is not a string",
+                        index
+                    ))?,
                     None => format!(
                         "{}.min.{}",
                         Path::new(&path).file_stem().unwrap().to_str().unwrap(),
                         Path::new(&path).extension().unwrap().to_str().unwrap()
                     ),
                 },
-                size: match file.get(&Yaml::String("width".to_string())) {
-                    Some(x) => {
-                        Size::Width(u32::try_from(x.clone().into_i64().expect("7")).unwrap())
-                    }
-                    None => Size::Height(
-                        u32::try_from(
-                            file.get(&Yaml::String("height".to_string()))
-                                .unwrap()
-                                .clone()
-                                .into_i64()
-                                .expect("7"),
-                        )
-                        .unwrap(),
+                size: match (width, height) {
+                    (Some(width), Some(height)) => Size::WidthHeight(
+                        u32::try_from(width.clone().into_i64().expect("7")).unwrap(),
+                        u32::try_from(height.clone().into_i64().expect("7")).unwrap(),
                     ),
+                    (Some(width), None) => {
+                        Size::Width(u32::try_from(width.clone().into_i64().expect("7")).unwrap())
+                    }
+                    (None, Some(height)) => {
+                        Size::Height(u32::try_from(height.clone().into_i64().expect("7")).unwrap())
+                    }
+                    (None, None) => {
+                        return Err(format!("file index {} has no width nor height", index))
+                    }
                 },
             }
         })
