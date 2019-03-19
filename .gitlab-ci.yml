@@ -1,4 +1,4 @@
-image: "rust:nightly"
+image: "rust:latest"
 
 
 stages:
@@ -12,6 +12,7 @@ stages:
 clean-code:
   stage: check
   script:
+    - rustup default nightly
     - rustup component add rustfmt-preview
     - cargo fmt --all -- --check
   allow_failure: true
