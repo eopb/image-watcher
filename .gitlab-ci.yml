@@ -41,7 +41,7 @@ linux-optimized:
   stage: deploy-examples
   script:
     - rustup default nightly
-    - cargo build --examples --release
+    - cargo build --release
     - rm -r -f files
     - mkdir files
     - cp target/release/image-watcher files
@@ -64,7 +64,7 @@ windows-optimized:
     - echo [target.x86_64-pc-windows-gnu] >> .cargo/config
     - echo     linker = \"x86_64-w64-mingw32-gcc\" >> .cargo/config
     - echo     ar = \"x86_64-w64-mingw32-gcc-ar\" >> .cargo/config
-    - cargo build --examples --release --target=x86_64-pc-windows-gnu
+    - cargo build --release --target=x86_64-pc-windows-gnu
     - rm -r -f files
     - mkdir files
     - cp target/x86_64-pc-windows-gnu/release/image-watcher.exe files
