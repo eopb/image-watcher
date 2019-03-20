@@ -1,9 +1,11 @@
+use read_input::prelude::*;
 use std::{
     convert::TryFrom,
     fs::{self, File},
     io::prelude::*,
     iter::Iterator,
     path::Path,
+    str::FromStr,
     thread, time,
     time::SystemTime,
 };
@@ -33,9 +35,7 @@ enum Mode {
 }
 
 fn main() {
-    println!("{:?}", std::env::args().collect::<Vec<String>>());
     let mode = mode();
-    println!("{:?}", mode);
     println!("Parsing config file image_watcher.yaml");
     let files_list = match parse_config() {
         Ok(x) => x,
@@ -221,5 +221,21 @@ fn mode() -> Mode {
             _ => (),
         }
     }
-    Mode::Watch
+    input()
+        .repeat_msg("Do you want to run in compile or watch mode?: ")
+        .err("Input the word compile or the word watch.")
+        .default(Mode::Watch)
+        .get()
+}
+
+impl FromStr for Mode {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.as_ref() {
+            "C" | "c" | "-c" | "compile" | "Compile" => Ok(Mode::Compile),
+            "W" | "w" | "-w" | "watch" | "Watch" => Ok(Mode::Watch),
+            _ => Err(()),
+        }
+    }
 }
