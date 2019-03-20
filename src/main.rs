@@ -12,7 +12,7 @@ use yaml_rust::{Yaml, YamlLoader};
 #[derive(Debug, Clone)]
 struct FileWatched {
     file: FileWatch,
-    time: SystemTime,
+    time: Option<SystemTime>,
 }
 #[derive(Debug, Clone)]
 struct FileWatch {
@@ -26,8 +26,16 @@ enum Size {
     Height(u32),
     WidthHeight(u32, u32),
 }
+#[derive(Debug)]
+enum Mode {
+    Compile,
+    Watch,
+}
 
 fn main() {
+    println!("{:?}", std::env::args().collect::<Vec<String>>());
+    let mode = mode();
+    println!("{:?}", mode);
     println!("Parsing config file image_watcher.yaml");
     let files_list = match parse_config() {
         Ok(x) => x,
@@ -41,22 +49,30 @@ fn main() {
         .into_iter()
         .map(|x| FileWatched {
             file: x.clone(),
-            time: when_modified(Path::new(&x.path)).unwrap(),
+            time: None,
         })
         .collect();
-    for file in files_list.clone().iter() {
-        resize_image(&file.file.path, &file.file.output, &file.file.size).unwrap()
-    }
     loop {
         for (index, file) in files_list.clone().iter().enumerate() {
             let modified = match when_modified(Path::new(&file.file.path)) {
                 Ok(s) => s,
                 Err(_) => return (),
             };
-            if file.time != modified {
-                files_list[index].time = modified;
-                resize_image(&file.file.path, &file.file.output, &file.file.size).unwrap()
-            }
+            match file.time {
+                Some(last) => {
+                    if last != modified {
+                        files_list[index].time = Some(modified);
+                        resize_image(&file.file.path, &file.file.output, &file.file.size).unwrap()
+                    };
+                }
+                None => {
+                    files_list[index].time = Some(modified);
+                    resize_image(&file.file.path, &file.file.output, &file.file.size).unwrap()
+                }
+            };
+        }
+        if let Mode::Compile = mode {
+            return ();
         }
         thread::sleep(time::Duration::from_millis(1000))
     }
@@ -195,4 +211,15 @@ impl<T> WrapError<T> for Option<T> {
             None => Err(s.to_string()),
         }
     }
+}
+
+fn mode() -> Mode {
+    for a in std::env::args() {
+        match a.as_ref() {
+            "-c" => return Mode::Compile,
+            "-w" => return Mode::Watch,
+            _ => (),
+        }
+    }
+    Mode::Watch
 }
