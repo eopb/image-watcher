@@ -1,13 +1,7 @@
 use read_input::prelude::*;
 use std::{
-    convert::TryFrom,
-    fs::{self, File},
-    io::prelude::*,
-    iter::Iterator,
-    path::Path,
-    str::FromStr,
-    thread, time,
-    time::SystemTime,
+    convert::TryFrom, fs::File, io::prelude::*, iter::Iterator, path::Path, str::FromStr, thread,
+    time, time::SystemTime,
 };
 use yaml_rust::{Yaml, YamlLoader};
 
