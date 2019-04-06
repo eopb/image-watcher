@@ -35,7 +35,7 @@ fn main() {
         Ok(x) => x,
         Err(e) => {
             println!("Error: {}", e);
-            return ();
+            return;
         }
     };
 
@@ -50,7 +50,7 @@ fn main() {
         for (index, file) in files_list.clone().iter().enumerate() {
             let modified = match when_modified(Path::new(&file.file.path)) {
                 Ok(s) => s,
-                Err(_) => return (),
+                Err(_) => return,
             };
             match file.time {
                 Some(last) => {
@@ -66,7 +66,7 @@ fn main() {
             };
         }
         if let Mode::Compile = mode {
-            return ();
+            return;
         }
         thread::sleep(time::Duration::from_millis(1000))
     }
