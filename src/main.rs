@@ -226,7 +226,7 @@ impl FromStr for Mode {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s.as_ref() {
+        match s {
             "C" | "c" | "-c" | "-C" | "--compile" | "--Compile" | "-compile" | "-Compile"
             | "--C" | "--c" | "compile" | "Compile" => Ok(Mode::Compile),
             "W" | "w" | "-w" | "-W" | "--watch" | "--Watch" | "-watch" | "-Watch" | "--W"
