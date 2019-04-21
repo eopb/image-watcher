@@ -70,14 +70,23 @@ fn main() {
 }
 
 fn resize_image(
-    path: &str,
+    path_str: &str,
     output: &str,
     size: &Size,
     filter_type: FilterType,
 ) -> Result<(), String> {
-    println!("updating {} to {}", path, output);
-    let path = Path::new(path);
+    let path = Path::new(path_str);
     let img = image::open(path).set_error(&format!("failed to open file {}", path.display()))?;
+    println!(
+        "updating image file\n{}\nto\n{}\nWith {}",
+        path_str,
+        output,
+        match size {
+            Size::WidthHeight(x, y) => format!("With as close as possible to width {}px and height {}px while keeping aspect ratio", x,y),
+            Size::Width(x) => format!("new width {}px", x),
+            Size::Height(x) => format!("new height {}px", x),
+        }
+    );
     let size = match size {
         Size::WidthHeight(x, y) => (*x, *y),
         Size::Width(x) => (*x, u32::max_value()),
