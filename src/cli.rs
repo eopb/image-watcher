@@ -11,7 +11,7 @@ use Mode::*;
 impl Mode {
     pub fn get() -> Self {
         for a in std::env::args() {
-            match Self::from_str(a.as_ref()) {
+            match Self::from_str(&a) {
                 Ok(x) => return x,
                 Err(_) => continue,
             }
