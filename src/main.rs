@@ -4,7 +4,7 @@ mod parse;
 
 use cli::Mode;
 use error_change::ChangeError;
-use parse::{parse_config, FileWatch, Size};
+use image::FilterType;
 use std::{
     iter::Iterator,
     path::Path,
@@ -12,7 +12,9 @@ use std::{
     time::{self, SystemTime},
 };
 
-#[derive(Debug, Clone)]
+use parse::{parse_config, FileWatch, Size};
+
+#[derive(Clone)]
 struct FileWatched {
     file: FileWatch,
     time: Option<SystemTime>,
@@ -42,17 +44,19 @@ fn main() {
                 Ok(s) => s,
                 Err(_) => return,
             };
+            let filter_type = file.file.resize_filter.unwrap_or(FilterType::Gaussian);
+            let mut resize_func = || files_list[index].time = Some(modified);
+            resize_image(
+                &file.file.path,
+                &file.file.output,
+                &file.file.size,
+                filter_type,
+            )
+            .unwrap();
             match file.time {
-                Some(last) => {
-                    if last != modified {
-                        files_list[index].time = Some(modified);
-                        resize_image(&file.file.path, &file.file.output, &file.file.size).unwrap()
-                    };
-                }
-                None => {
-                    files_list[index].time = Some(modified);
-                    resize_image(&file.file.path, &file.file.output, &file.file.size).unwrap()
-                }
+                Some(last) if last != modified => resize_func(),
+                None => resize_func(),
+                _ => (),
             };
         }
         if let Mode::Compile = mode {
@@ -62,7 +66,12 @@ fn main() {
     }
 }
 
-fn resize_image(path: &str, output: &str, size: &Size) -> Result<(), String> {
+fn resize_image(
+    path: &str,
+    output: &str,
+    size: &Size,
+    filter_type: FilterType,
+) -> Result<(), String> {
     println!("updating {} to {}", path, output);
     let path = Path::new(path);
     let img = image::open(path).set_error(&format!("failed to open file {}", path.display()))?;
@@ -72,7 +81,7 @@ fn resize_image(path: &str, output: &str, size: &Size) -> Result<(), String> {
         Size::Height(x) => (u32::max_value(), *x),
     };
     println!("{:?}", size);
-    let img = img.resize(size.0, size.1, image::FilterType::Gaussian);
+    let img = img.resize(size.0, size.1, filter_type);
     img.save(output).unwrap();
     Ok(())
 }
