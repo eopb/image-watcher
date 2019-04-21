@@ -1,12 +1,15 @@
 use super::error_change::ChangeError;
-use std::{convert::TryFrom, fs::File, io::prelude::*, iter::Iterator, path::Path};
-use yaml_rust::{Yaml, YamlLoader};
 
-#[derive(Debug, Clone)]
+use std::{convert::TryFrom, fs::File, io::prelude::*, iter::Iterator, path::Path};
+
+use image::FilterType::{self, *};
+use yaml_rust::{Yaml, YamlLoader};
+#[derive(Clone)]
 pub struct FileWatch {
     pub path: String,
     pub output: String,
     pub size: Size,
+    pub resize_filter: Option<FilterType>,
 }
 #[derive(Debug, Clone)]
 pub enum Size {
@@ -16,7 +19,28 @@ pub enum Size {
 }
 
 pub fn parse_config() -> Result<Vec<FileWatch>, String> {
-    let files_list = {
+    fn resize_filter_getter(
+        yaml: Option<&yaml_rust::yaml::Yaml>,
+    ) -> Result<Option<FilterType>, String> {
+        Ok(match yaml {
+            Some(x) => {
+                let x = x
+                    .clone()
+                    .into_string()
+                    .set_error("Resize_filter not a string.");
+                match x.clone()?.as_ref() {
+                    "Nearest" => Some(Nearest),
+                    "Triangle" => Some(Triangle),
+                    "CatmullRom" => Some(CatmullRom),
+                    "Gaussian" => Some(Gaussian),
+                    "Lanczos3" => Some(Lanczos3),
+                    _ => return Err(format!("Unknown resize_filter {}", x?)),
+                }
+            }
+            None => None,
+        })
+    }
+    let open_file = {
         YamlLoader::load_from_str(&{
             let mut contents = String::new();
 
@@ -30,13 +54,16 @@ pub fn parse_config() -> Result<Vec<FileWatch>, String> {
             .clone()
     }
     .into_hash()
-    .set_error("Base of the file not a hash.")?
-    .get(&Yaml::String("files".to_string()))
-    .set_error("No files section in config file.")?
-    .clone()
-    .into_vec()
-    .set_error("Files section in config is not a list.")?
-    .into_iter();
+    .set_error("Base of the file not a hash.")?;
+    let files_list = open_file
+        .get(&Yaml::String("files".to_string()))
+        .set_error("No files section in config file.")?
+        .clone()
+        .into_vec()
+        .set_error("Files section in config is not a list.")?
+        .into_iter();
+    let resize_filter =
+        resize_filter_getter(open_file.get(&Yaml::String("resize_filter".to_string())));
     let mut files_as_hash_list = Vec::new();
     for (index, file) in files_list.enumerate() {
         files_as_hash_list.push(
@@ -94,6 +121,12 @@ pub fn parse_config() -> Result<Vec<FileWatch>, String> {
                     (None, None) => {
                         return Err(format!("file index {} has no width nor height", index))
                     }
+                },
+                resize_filter: match resize_filter_getter(
+                    file.get(&Yaml::String("resize_filter".to_string())),
+                )? {
+                    Some(x) => Some(x),
+                    None => resize_filter.clone()?,
                 },
             }
         })
