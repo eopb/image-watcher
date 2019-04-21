@@ -54,12 +54,9 @@ fn main() {
             )
             .unwrap();
             match file.time {
-                Some(last) => {
-                    if last != modified {
-                        resize_func()
-                    };
-                }
+                Some(last) if last != modified => resize_func(),
                 None => resize_func(),
+                _ => (),
             };
         }
         if let Mode::Compile = mode {
