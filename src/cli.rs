@@ -1,14 +1,5 @@
 use read_input::prelude::*;
-use std::{
-    convert::TryFrom,
-    fs::File,
-    io::prelude::*,
-    iter::Iterator,
-    path::Path,
-    str::FromStr,
-    thread,
-    time::{self, SystemTime},
-};
+use std::str::FromStr;
 
 #[derive(Debug)]
 pub enum Mode {

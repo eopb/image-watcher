@@ -6,12 +6,8 @@ use cli::Mode;
 use error_change::ChangeError;
 use parse::{parse_config, FileWatch, Size};
 use std::{
-    convert::TryFrom,
-    fs::File,
-    io::prelude::*,
     iter::Iterator,
     path::Path,
-    str::FromStr,
     thread,
     time::{self, SystemTime},
 };
