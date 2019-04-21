@@ -1,3 +1,6 @@
+pub mod error_change;
+
+use error_change::ChangeError;
 use read_input::prelude::*;
 use std::{
     convert::TryFrom, fs::File, io::prelude::*, iter::Iterator, path::Path, str::FromStr, thread,
@@ -75,7 +78,7 @@ fn main() {
 fn resize_image(path: &str, output: &str, size: &Size) -> Result<(), String> {
     println!("updating {} to {}", path, output);
     let path = Path::new(path);
-    let img = image::open(path).wrap(&format!("failed to open file {}", path.display()))?;
+    let img = image::open(path).set_error(&format!("failed to open file {}", path.display()))?;
     let size = match size {
         Size::WidthHeight(x, y) => (*x, *y),
         Size::Width(x) => (*x, u32::max_value()),
@@ -91,9 +94,9 @@ fn when_modified(path: &Path) -> Result<SystemTime, String> {
     Ok::<_, String>(
         Path::new(path)
             .metadata()
-            .wrap(&format!("failed to open file {} metadata", path.display()))?
+            .set_error(&format!("failed to open file {} metadata", path.display()))?
             .modified()
-            .wrap(&format!(
+            .set_error(&format!(
                 "failed to find files date modifide {}",
                 path.display()
             )),
@@ -106,28 +109,28 @@ fn parse_config() -> Result<Vec<FileWatch>, String> {
             let mut contents = String::new();
 
             File::open("image_watcher.yaml")
-                .wrap("Failed to open config file.")?
+                .set_error("Failed to open config file.")?
                 .read_to_string(&mut contents)
-                .wrap("Failed to open read file.")?;
+                .set_error("Failed to open read file.")?;
             contents
         })
-        .wrap("Failed to parse config file.")?[0]
+        .set_error("Failed to parse config file.")?[0]
             .clone()
     }
     .into_hash()
-    .wrap("Base of the file not a hash.")?
+    .set_error("Base of the file not a hash.")?
     .get(&Yaml::String("files".to_string()))
-    .wrap("No files section in config file.")?
+    .set_error("No files section in config file.")?
     .clone()
     .into_vec()
-    .wrap("Files section in config is not a list.")?
+    .set_error("Files section in config is not a list.")?
     .into_iter();
     let mut files_as_hash_list = Vec::new();
     for (index, file) in files_list.enumerate() {
         files_as_hash_list.push(
             file.clone()
                 .into_hash()
-                .wrap(&format!("file index {} is not a hash", index))?,
+                .set_error(&format!("file index {} is not a hash", index))?,
         )
     }
     let mut files_list = Vec::new();
@@ -135,10 +138,10 @@ fn parse_config() -> Result<Vec<FileWatch>, String> {
         files_list.push({
             let path = file
                 .get(&Yaml::String("path".to_string()))
-                .wrap(&format!("file index {} has no path", index))?
+                .set_error(&format!("file index {} has no path", index))?
                 .clone()
                 .into_string()
-                .wrap(&format!(
+                .set_error(&format!(
                     "file index {} has a path that is not a string",
                     index
                 ))?;
@@ -147,7 +150,7 @@ fn parse_config() -> Result<Vec<FileWatch>, String> {
             FileWatch {
                 path: path.clone(),
                 output: match file.get(&Yaml::String("output".to_string())) {
-                    Some(x) => x.clone().into_string().wrap(&format!(
+                    Some(x) => x.clone().into_string().set_error(&format!(
                         "file index {} has a output path that is not a string",
                         index
                     ))?,
@@ -186,26 +189,6 @@ fn parse_config() -> Result<Vec<FileWatch>, String> {
     Ok(files_list)
 }
 
-pub trait WrapError<T> {
-    fn wrap(self, s: &str) -> Result<T, String>;
-}
-
-impl<T, E> WrapError<T> for Result<T, E> {
-    fn wrap(self, s: &str) -> Result<T, String> {
-        match self {
-            Ok(t) => Ok(t),
-            Err(_) => Err(s.to_string()),
-        }
-    }
-}
-impl<T> WrapError<T> for Option<T> {
-    fn wrap(self, s: &str) -> Result<T, String> {
-        match self {
-            Some(t) => Ok(t),
-            None => Err(s.to_string()),
-        }
-    }
-}
 
 fn mode() -> Mode {
     for a in std::env::args() {
