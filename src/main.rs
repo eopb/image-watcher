@@ -1,3 +1,6 @@
+#![deny(clippy::pedantic)]
+#![allow(clippy::module_name_repetitions, clippy::enum_glob_use)]
+
 mod cli;
 mod error_change;
 mod parse;
