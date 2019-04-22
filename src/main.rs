@@ -15,7 +15,7 @@ use std::{
     time::{self, SystemTime},
 };
 
-use parse::{parse_config, FileWatch, Size};
+use parse::{parse_config, FileWatch, Settings, Size};
 
 #[derive(Clone)]
 struct FileWatched {
@@ -48,18 +48,9 @@ fn main() {
                 Ok(s) => s,
                 Err(_) => return,
             };
-            let filter_type = match file.file.resize_filter {
-                Some(x) => x,
-                None => config.resize_filter.unwrap_or(FilterType::Gaussian),
-            };
+
             let resize_func = || {
-                resize_image(
-                    &file.file.path,
-                    &file.file.output,
-                    &file.file.size,
-                    filter_type,
-                )
-                .unwrap();
+                resize_image(config, file).unwrap();
                 Some(modified)
             };
             files_list[index].time = match file.time {
@@ -75,12 +66,15 @@ fn main() {
     }
 }
 
-fn resize_image(
-    path_str: &str,
-    output: &str,
-    size: &Size,
-    filter_type: FilterType,
-) -> Result<(), String> {
+fn resize_image(global: Settings, file: &FileWatched) -> Result<(), String> {
+    let path_str = &file.file.path;
+    let output = &file.file.output;
+    let size = &file.file.size;
+    let filter_type = match file.file.resize_filter {
+        Some(x) => x,
+        None => global.resize_filter.unwrap_or(FilterType::Gaussian),
+    };
+    let filter_type = filter_type;
     let path = Path::new(path_str);
     let img = image::open(path).set_error(&format!("failed to open file {}", path.display()))?;
     println!(
@@ -88,7 +82,7 @@ fn resize_image(
         path_str,
         output,
         match size {
-            Size::WidthHeight(x, y) => format!("With as close as possible to width {}px and height {}px while keeping aspect ratio", x,y),
+            Size::WidthHeight(x, y) => format!("With as close as possible to width {}px and height {}px while keeping aspect ratio", x, y),
             Size::Width(x) => format!("new width {}px", x),
             Size::Height(x) => format!("new height {}px", x),
         }
