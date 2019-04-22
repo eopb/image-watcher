@@ -4,6 +4,11 @@ use std::{convert::TryFrom, fs::File, io::prelude::*, iter::Iterator, path::Path
 
 use image::FilterType::{self, *};
 use yaml_rust::{Yaml, YamlLoader};
+
+pub struct Settings {
+    pub files_list: Vec<FileWatch>,
+}
+
 #[derive(Clone)]
 pub struct FileWatch {
     pub path: String,
@@ -18,7 +23,7 @@ pub enum Size {
     WidthHeight(u32, u32),
 }
 
-pub fn parse_config() -> Result<Vec<FileWatch>, String> {
+pub fn parse_config() -> Result<Settings, String> {
     fn resize_filter_getter(
         yaml: Option<&yaml_rust::yaml::Yaml>,
     ) -> Result<Option<FilterType>, String> {
@@ -131,5 +136,5 @@ pub fn parse_config() -> Result<Vec<FileWatch>, String> {
             }
         })
     }
-    Ok(files_list)
+    Ok(Settings{files_list:files_list})
 }

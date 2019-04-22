@@ -26,7 +26,7 @@ struct FileWatched {
 fn main() {
     let mode = Mode::get();
     println!("Parsing config file image_watcher.yaml");
-    let files_list = match parse_config() {
+    let config = match parse_config() {
         Ok(x) => x,
         Err(e) => {
             println!("Error: {}", e);
@@ -34,7 +34,7 @@ fn main() {
         }
     };
 
-    let mut files_list: Vec<FileWatched> = files_list
+    let mut files_list: Vec<FileWatched> = config.files_list
         .into_iter()
         .map(|x| FileWatched {
             file: x.clone(),
