@@ -136,5 +136,7 @@ pub fn parse_config() -> Result<Settings, String> {
             }
         })
     }
-    Ok(Settings{files_list:files_list})
+    Ok(Settings {
+        files_list: files_list,
+    })
 }

@@ -34,7 +34,8 @@ fn main() {
         }
     };
 
-    let mut files_list: Vec<FileWatched> = config.files_list
+    let mut files_list: Vec<FileWatched> = config
+        .files_list
         .into_iter()
         .map(|x| FileWatched {
             file: x.clone(),
