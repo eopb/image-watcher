@@ -1,0 +1,13 @@
+files:
+  -
+    path: 'private\images\backgrounds\hand_and_book.JPG'
+    height: 350
+  -
+    path: 'private\images\backgrounds\goldcrest.jpg'
+    height: 400
+  -
+    path: 'private\images\backgrounds\downs.jpg'
+    width: 1000
+  -
+    path: 'private\images\backgrounds\light.jpg'
+    width: 1000
