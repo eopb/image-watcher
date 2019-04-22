@@ -3,7 +3,7 @@ use super::error_change::ChangeError;
 use std::{convert::TryFrom, fs::File, io::prelude::*, iter::Iterator, path::Path};
 
 use image::FilterType::{self, *};
-use yaml_rust::{Yaml, YamlLoader, Hash};
+use yaml_rust::{Yaml, YamlLoader, yaml::Hash};
 
 pub struct Settings {
     pub files_list: Vec<FileWatch>,
