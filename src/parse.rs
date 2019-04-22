@@ -7,16 +7,29 @@ use yaml_rust::{Yaml, YamlLoader};
 
 pub struct Settings {
     pub files_list: Vec<FileWatch>,
-    pub resize_filter: Option<FilterType>,
+    pub other: ShareSettings,
 }
 
 #[derive(Clone)]
 pub struct FileWatch {
     pub path: String,
     pub output: String,
-    pub size: Size,
-    pub resize_filter: Option<FilterType>,
+    pub other: ShareSettings,
 }
+#[derive(Clone)]
+pub struct ShareSettings {
+    pub jobs: Vec<ImgEditJob>,
+}
+#[derive(Clone)]
+pub enum ImgEditJob {
+    Resize(Resize),
+}
+#[derive(Clone)]
+pub struct Resize {
+    pub size: Size,
+    pub filter: Option<FilterType>,
+}
+
 #[derive(Debug, Clone)]
 pub enum Size {
     Width(u32),
@@ -113,29 +126,33 @@ pub fn parse_config() -> Result<Settings, String> {
                         Path::new(&path).extension().unwrap().to_str().unwrap()
                     ),
                 },
-                size: match (width, height) {
-                    (Some(width), Some(height)) => Size::WidthHeight(
-                        u32::try_from(width.clone().into_i64().expect("7")).unwrap(),
-                        u32::try_from(height.clone().into_i64().expect("7")).unwrap(),
-                    ),
-                    (Some(width), None) => {
-                        Size::Width(u32::try_from(width.clone().into_i64().expect("7")).unwrap())
-                    }
-                    (None, Some(height)) => {
-                        Size::Height(u32::try_from(height.clone().into_i64().expect("7")).unwrap())
-                    }
-                    (None, None) => {
-                        return Err(format!("file index {} has no width nor height", index))
-                    }
+                other: ShareSettings {
+                    jobs: vec![ImgEditJob::Resize(Resize {
+                        size: match (width, height) {
+                            (Some(width), Some(height)) => Size::WidthHeight(
+                                u32::try_from(width.clone().into_i64().expect("7")).unwrap(),
+                                u32::try_from(height.clone().into_i64().expect("7")).unwrap(),
+                            ),
+                            (Some(width), None) => Size::Width(
+                                u32::try_from(width.clone().into_i64().expect("7")).unwrap(),
+                            ),
+                            (None, Some(height)) => Size::Height(
+                                u32::try_from(height.clone().into_i64().expect("7")).unwrap(),
+                            ),
+                            (None, None) => {
+                                return Err(format!("file index {} has no width nor height", index))
+                            }
+                        },
+                        filter: resize_filter_getter(
+                            file.get(&Yaml::String("resize_filter".to_string())),
+                        )?,
+                    })],
                 },
-                resize_filter: resize_filter_getter(
-                    file.get(&Yaml::String("resize_filter".to_string())),
-                )?,
             }
         })
     }
     Ok(Settings {
         files_list: files_list,
-        resize_filter: resize_filter?,
+        other: ShareSettings { jobs: Vec::new() },
     })
 }

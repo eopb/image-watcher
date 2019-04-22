@@ -15,7 +15,7 @@ use std::{
     time::{self, SystemTime},
 };
 
-use parse::{parse_config, FileWatch, Settings, Size};
+use parse::{parse_config, FileWatch, ImgEditJob, Resize, Settings, Size};
 
 #[derive(Clone)]
 struct FileWatched {
@@ -35,7 +35,8 @@ fn main() {
     };
 
     let mut files_list: Vec<FileWatched> = config
-        .files_list.clone()
+        .files_list
+        .clone()
         .into_iter()
         .map(|x| FileWatched {
             file: x.clone(),
@@ -48,9 +49,18 @@ fn main() {
                 Ok(s) => s,
                 Err(_) => return,
             };
-
+            let filter_hack_getter = match file.file.other.jobs[0].clone() {
+                ImgEditJob::Resize(x) => x,
+                _ => panic!(),
+            };
             let resize_func = || {
-                resize_image(&config, file).unwrap();
+                resize_image(
+                    &config,
+                    file,
+                    filter_hack_getter.filter.unwrap(),
+                    filter_hack_getter.size,
+                )
+                .unwrap();
                 Some(modified)
             };
             files_list[index].time = match file.time {
@@ -66,15 +76,14 @@ fn main() {
     }
 }
 
-fn resize_image(global: &Settings, file: &FileWatched) -> Result<(), String> {
+fn resize_image(
+    global: &Settings,
+    file: &FileWatched,
+    filter_type: FilterType,
+    size: Size,
+) -> Result<(), String> {
     let path_str = &file.file.path;
     let output = &file.file.output;
-    let size = &file.file.size;
-    let filter_type = match file.file.resize_filter {
-        Some(x) => x,
-        None => global.resize_filter.unwrap_or(FilterType::Gaussian),
-    };
-    let filter_type = filter_type;
     let path = Path::new(path_str);
     let img = image::open(path).set_error(&format!("failed to open file {}", path.display()))?;
     println!(
@@ -88,9 +97,9 @@ fn resize_image(global: &Settings, file: &FileWatched) -> Result<(), String> {
         }
     );
     let size = match size {
-        Size::WidthHeight(x, y) => (*x, *y),
-        Size::Width(x) => (*x, u32::max_value()),
-        Size::Height(x) => (u32::max_value(), *x),
+        Size::WidthHeight(x, y) => (x, y),
+        Size::Width(x) => (x, u32::max_value()),
+        Size::Height(x) => (u32::max_value(), x),
     };
     let img = img.resize(size.0, size.1, filter_type);
     img.save(output).unwrap();
