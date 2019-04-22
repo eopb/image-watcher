@@ -48,18 +48,20 @@ fn main() {
                 Err(_) => return,
             };
             let filter_type = file.file.resize_filter.unwrap_or(FilterType::Gaussian);
-            let mut resize_func = || files_list[index].time = Some(modified);
-            resize_image(
-                &file.file.path,
-                &file.file.output,
-                &file.file.size,
-                filter_type,
-            )
-            .unwrap();
-            match file.time {
+            let resize_func = || {
+                resize_image(
+                    &file.file.path,
+                    &file.file.output,
+                    &file.file.size,
+                    filter_type,
+                )
+                .unwrap();
+                Some(modified)
+            };
+            files_list[index].time = match file.time {
                 Some(last) if last != modified => resize_func(),
                 None => resize_func(),
-                _ => (),
+                _ => files_list[index].time,
             };
         }
         if let Mode::Compile = mode {
