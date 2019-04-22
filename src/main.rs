@@ -94,7 +94,6 @@ fn resize_image(
         Size::Width(x) => (*x, u32::max_value()),
         Size::Height(x) => (u32::max_value(), *x),
     };
-    println!("{:?}", size);
     let img = img.resize(size.0, size.1, filter_type);
     img.save(output).unwrap();
     Ok(())
