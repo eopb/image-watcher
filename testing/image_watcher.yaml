@@ -1,3 +1,5 @@
+#global
+
 files:
   -
     path: 'private\images\backgrounds\hand_and_book.JPG'

@@ -35,7 +35,7 @@ fn main() {
     };
 
     let mut files_list: Vec<FileWatched> = config
-        .files_list
+        .files_list.clone()
         .into_iter()
         .map(|x| FileWatched {
             file: x.clone(),
@@ -50,7 +50,7 @@ fn main() {
             };
 
             let resize_func = || {
-                resize_image(config, file).unwrap();
+                resize_image(&config, file).unwrap();
                 Some(modified)
             };
             files_list[index].time = match file.time {
@@ -66,7 +66,7 @@ fn main() {
     }
 }
 
-fn resize_image(global: Settings, file: &FileWatched) -> Result<(), String> {
+fn resize_image(global: &Settings, file: &FileWatched) -> Result<(), String> {
     let path_str = &file.file.path;
     let output = &file.file.output;
     let size = &file.file.size;
