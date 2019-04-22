@@ -7,6 +7,7 @@ use yaml_rust::{Yaml, YamlLoader};
 
 pub struct Settings {
     pub files_list: Vec<FileWatch>,
+    pub resize_filter: Option<FilterType>,
 }
 
 #[derive(Clone)]
@@ -127,16 +128,14 @@ pub fn parse_config() -> Result<Settings, String> {
                         return Err(format!("file index {} has no width nor height", index))
                     }
                 },
-                resize_filter: match resize_filter_getter(
+                resize_filter: resize_filter_getter(
                     file.get(&Yaml::String("resize_filter".to_string())),
-                )? {
-                    Some(x) => Some(x),
-                    None => resize_filter.clone()?,
-                },
+                )?,
             }
         })
     }
     Ok(Settings {
         files_list: files_list,
+        resize_filter: resize_filter?,
     })
 }

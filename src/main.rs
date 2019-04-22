@@ -48,7 +48,10 @@ fn main() {
                 Ok(s) => s,
                 Err(_) => return,
             };
-            let filter_type = file.file.resize_filter.unwrap_or(FilterType::Gaussian);
+            let filter_type = match file.file.resize_filter {
+                Some(x) => x,
+                None => config.resize_filter.unwrap_or(FilterType::Gaussian),
+            };
             let resize_func = || {
                 resize_image(
                     &file.file.path,
