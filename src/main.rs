@@ -80,7 +80,7 @@ fn resize_image(
     let path = Path::new(path_str);
     let img = image::open(path).set_error(&format!("failed to open file {}", path.display()))?;
     println!(
-        "updating image file\n{}\nto\n{}\nWith {}",
+        "updating image file\n{}\nto\n{}\nWith {}\n\n\n",
         path_str,
         output,
         match size {
