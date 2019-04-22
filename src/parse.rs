@@ -3,7 +3,7 @@ use super::error_change::ChangeError;
 use std::{convert::TryFrom, fs::File, io::prelude::*, iter::Iterator, path::Path};
 
 use image::FilterType::{self, *};
-use yaml_rust::{Yaml, YamlLoader};
+use yaml_rust::{Yaml, YamlLoader, Hash};
 
 pub struct Settings {
     pub files_list: Vec<FileWatch>,
@@ -38,6 +38,12 @@ pub enum Size {
 }
 
 pub fn parse_config() -> Result<Settings, String> {
+    fn get_job(yaml: &Hash) -> Vec<ImgEditJob> {
+        let mut jobs = Vec::new();
+        let width = yaml.get(&Yaml::String("width".to_string()));
+        let height = yaml.get(&Yaml::String("height".to_string()));
+        jobs
+    }
     fn resize_filter_getter(
         yaml: Option<&yaml_rust::yaml::Yaml>,
     ) -> Result<Option<FilterType>, String> {
