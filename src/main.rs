@@ -33,6 +33,7 @@ fn main() {
             return;
         }
     };
+    println!("{:#?}", config);
 
     let mut files_list: Vec<FileWatched> = config
         .files_list
@@ -44,30 +45,51 @@ fn main() {
         })
         .collect();
     loop {
-        for (index, file) in files_list.clone().iter().enumerate() {
-            let modified = match when_modified(Path::new(&file.file.path)) {
+        for (
+            index,
+            FileWatched {
+                file: file,
+                time: time,
+            },
+        ) in files_list.clone().iter().enumerate()
+        {
+            let modified = match when_modified(Path::new(&file.path)) {
                 Ok(s) => s,
                 Err(_) => return,
             };
-            let filter_hack_getter = match file.file.other.jobs[0].clone() {
-                ImgEditJob::Resize(x) => x,
-                _ => panic!(),
-            };
-            let resize_func = || {
-                resize_image(
-                    &config,
-                    file,
-                    filter_hack_getter.filter.unwrap(),
-                    filter_hack_getter.size,
-                )
-                .unwrap();
-                Some(modified)
-            };
-            files_list[index].time = match file.time {
-                Some(last) if last != modified => resize_func(),
-                None => resize_func(),
-                _ => files_list[index].time,
-            };
+            for job in file.other.jobs.clone() {
+                let img_edit_job = match job {
+                    ImgEditJob::Resize(resize) => || {
+                        resize_image(
+                            {
+                                match config
+                                    .other
+                                    .jobs
+                                    .iter()
+                                    .map(|x| match x {
+                                        ImgEditJob::Resize(x) => Some(x),
+                                        _ => None,
+                                    })
+                                    .filter(|x| x.is_some())
+                                    .next()
+                                {
+                                    Some(Some(x)) => Some(x),
+                                    _ => None,
+                                }
+                            },
+                            file,
+                            resize,
+                        )
+                        .expect("ad43fa");
+                        Some(modified)
+                    },
+                };
+                files_list[index].time = match time {
+                    Some(last) if last != &modified => img_edit_job(),
+                    None => img_edit_job(),
+                    _ => files_list[index].time,
+                };
+            }
         }
         if let Mode::Compile = mode {
             return;
@@ -77,15 +99,19 @@ fn main() {
 }
 
 fn resize_image(
-    global: &Settings,
-    file: &FileWatched,
-    filter_type: FilterType,
-    size: Size,
+    global_size: Option<&Resize>,
+    file: &FileWatch,
+    resize: Resize,
 ) -> Result<(), String> {
-    let path_str = &file.file.path;
-    let output = &file.file.output;
+    let path_str = &file.path;
+    let output = &file.output;
     let path = Path::new(path_str);
     let img = image::open(path).set_error(&format!("failed to open file {}", path.display()))?;
+    let filter_type = resize
+        .filter
+        .or(global_size.and_then(|x| x.filter))
+        .unwrap_or(FilterType::Gaussian);
+    let size = &resize.size;
     println!(
         "updating image file\n{}\nto\n{}\nWith {}\n\n\n",
         path_str,
@@ -98,10 +124,10 @@ fn resize_image(
     );
     let size = match size {
         Size::WidthHeight(x, y) => (x, y),
-        Size::Width(x) => (x, u32::max_value()),
-        Size::Height(x) => (u32::max_value(), x),
+        Size::Width(x) => (x, &u32::max_value()),
+        Size::Height(x) => (&u32::max_value(), x),
     };
-    let img = img.resize(size.0, size.1, filter_type);
+    let img = img.resize(*size.0, *size.1, filter_type);
     img.save(output).unwrap();
     Ok(())
 }

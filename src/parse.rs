@@ -1,26 +1,27 @@
 use super::error_change::ChangeError;
 
-use std::{convert::TryFrom, fs::File, io::prelude::*, iter::Iterator, path::Path};
+use std::{convert::TryFrom, fmt, fs::File, io::prelude::*, iter::Iterator, path::Path};
 
 use image::FilterType::{self, *};
 use yaml_rust::{yaml::Hash, Yaml, YamlLoader};
 
+#[derive(Debug, Clone)]
 pub struct Settings {
     pub files_list: Vec<FileWatch>,
     pub other: ShareSettings,
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct FileWatch {
     pub path: String,
     pub output: String,
     pub other: ShareSettings,
 }
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct ShareSettings {
     pub jobs: Vec<ImgEditJob>,
 }
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum ImgEditJob {
     Resize(Resize),
 }
@@ -28,6 +29,11 @@ pub enum ImgEditJob {
 pub struct Resize {
     pub size: Size,
     pub filter: Option<FilterType>,
+}
+impl fmt::Debug for Resize {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Resize {{ size: {:?} }}", self.size)
+    }
 }
 
 #[derive(Debug, Clone)]
