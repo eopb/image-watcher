@@ -60,7 +60,7 @@ fn main() {
             for job in file.other.jobs.clone() {
                 let img_edit_job = match job {
                     ImgEditJob::Resize(resize) => || {
-                        resize_image(
+                        match resize_image(
                             {
                                 match config
                                     .other
@@ -79,8 +79,13 @@ fn main() {
                             },
                             file,
                             resize,
-                        )
-                        .expect("ad43fa");
+                        ) {
+                            Ok(k) => k,
+                            Err(e) => {
+                                println!("{}", e);
+                                panic!()
+                            }
+                        };
                         Some(modified)
                     },
                 };
