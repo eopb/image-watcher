@@ -3,7 +3,7 @@ use super::error_change::ChangeError;
 use std::{convert::TryFrom, fs::File, io::prelude::*, iter::Iterator, path::Path};
 
 use image::FilterType::{self, *};
-use yaml_rust::{Yaml, YamlLoader, yaml::Hash};
+use yaml_rust::{yaml::Hash, Yaml, YamlLoader};
 
 pub struct Settings {
     pub files_list: Vec<FileWatch>,
@@ -38,11 +38,46 @@ pub enum Size {
 }
 
 pub fn parse_config() -> Result<Settings, String> {
-    fn get_job(yaml: &Hash) -> Vec<ImgEditJob> {
+    fn push_some<T>(vec: &mut Vec<T>, value: Option<T>) {
+        match value {
+            Some(x) => vec.push(x),
+            None => (),
+        }
+    }
+
+    fn get_jobs(yaml: &Hash) -> Result<Vec<ImgEditJob>, String> {
         let mut jobs = Vec::new();
+
+        push_some(
+            &mut jobs,
+            match get_size(yaml) {
+                Some(x) => Some(ImgEditJob::Resize(Resize {
+                    size: x,
+                    filter: resize_filter_getter(
+                        yaml.get(&Yaml::String("resize_filter".to_string())),
+                    )?,
+                })),
+                None => None,
+            },
+        );
+        Ok(jobs)
+    }
+    fn get_size(yaml: &Hash) -> Option<Size> {
         let width = yaml.get(&Yaml::String("width".to_string()));
         let height = yaml.get(&Yaml::String("height".to_string()));
-        jobs
+        Some(match (width, height) {
+            (Some(width), Some(height)) => Size::WidthHeight(
+                u32::try_from(width.clone().into_i64().expect("7")).unwrap(),
+                u32::try_from(height.clone().into_i64().expect("7")).unwrap(),
+            ),
+            (Some(width), None) => {
+                Size::Width(u32::try_from(width.clone().into_i64().expect("7")).unwrap())
+            }
+            (None, Some(height)) => {
+                Size::Height(u32::try_from(height.clone().into_i64().expect("7")).unwrap())
+            }
+            (None, None) => return None,
+        })
     }
     fn resize_filter_getter(
         yaml: Option<&yaml_rust::yaml::Yaml>,
@@ -87,8 +122,6 @@ pub fn parse_config() -> Result<Settings, String> {
         .into_vec()
         .set_error("Files section in config is not a list.")?
         .into_iter();
-    let resize_filter =
-        resize_filter_getter(open_file.get(&Yaml::String("resize_filter".to_string())));
     let mut files_as_hash_list = Vec::new();
     for (index, file) in files_list.enumerate() {
         files_as_hash_list.push(
@@ -109,8 +142,6 @@ pub fn parse_config() -> Result<Settings, String> {
                     "file index {} has a path that is not a string",
                     index
                 ))?;
-            let width = file.get(&Yaml::String("width".to_string()));
-            let height = file.get(&Yaml::String("height".to_string()));
             FileWatch {
                 path: path.clone(),
                 output: match file.get(&Yaml::String("output".to_string())) {
@@ -133,32 +164,15 @@ pub fn parse_config() -> Result<Settings, String> {
                     ),
                 },
                 other: ShareSettings {
-                    jobs: vec![ImgEditJob::Resize(Resize {
-                        size: match (width, height) {
-                            (Some(width), Some(height)) => Size::WidthHeight(
-                                u32::try_from(width.clone().into_i64().expect("7")).unwrap(),
-                                u32::try_from(height.clone().into_i64().expect("7")).unwrap(),
-                            ),
-                            (Some(width), None) => Size::Width(
-                                u32::try_from(width.clone().into_i64().expect("7")).unwrap(),
-                            ),
-                            (None, Some(height)) => Size::Height(
-                                u32::try_from(height.clone().into_i64().expect("7")).unwrap(),
-                            ),
-                            (None, None) => {
-                                return Err(format!("file index {} has no width nor height", index))
-                            }
-                        },
-                        filter: resize_filter_getter(
-                            file.get(&Yaml::String("resize_filter".to_string())),
-                        )?,
-                    })],
+                    jobs: get_jobs(&file)?,
                 },
             }
         })
     }
     Ok(Settings {
         files_list: files_list,
-        other: ShareSettings { jobs: Vec::new() },
+        other: ShareSettings {
+            jobs: get_jobs(&open_file)?,
+        },
     })
 }
