@@ -33,7 +33,7 @@ fn main() {
             return;
         }
     };
-    println!("{:#?}", config);
+    dbg!(config.clone());
 
     let mut files_list: Vec<FileWatched> = config
         .files_list
