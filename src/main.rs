@@ -15,7 +15,7 @@ use std::{
     time::{self, SystemTime},
 };
 
-use parse::{parse_config, FileWatch, ImgEditJobs, Resize, Settings, Size};
+use parse::{parse_config, FileWatch, ImgEditJobs, Resize, Settings, SharedSettings, Size};
 
 #[derive(Clone)]
 struct FileWatched {
@@ -40,7 +40,10 @@ fn main() {
         .clone()
         .into_iter()
         .map(|x| FileWatched {
-            file: x.clone(),
+            file: FileWatch {
+                other: file_share_or_combine(x.other.clone(), config.other.clone()),
+                ..x.clone()
+            },
             time: None,
         })
         .collect();
@@ -57,44 +60,25 @@ fn main() {
                 Ok(s) => s,
                 Err(_) => return,
             };
-            for job in file.other.jobs.clone() {
-                let img_edit_job = match job {
-                    ImgEditJobs::Resize(resize) => || {
-                        match resize_image(
-                            {
-                                match config
-                                    .other
-                                    .jobs
-                                    .iter()
-                                    .map(|x| match x {
-                                        ImgEditJobs::Resize(x) => Some(x),
-                                        _ => None,
-                                    })
-                                    .filter(|x| x.is_some())
-                                    .next()
-                                {
-                                    Some(Some(x)) => Some(x),
-                                    _ => None,
-                                }
-                            },
-                            file,
-                            resize,
-                        ) {
-                            Ok(k) => k,
-                            Err(e) => {
-                                println!("{}", e);
-                                panic!()
-                            }
-                        };
-                        Some(modified)
-                    },
-                };
-                files_list[index].time = match time {
-                    Some(last) if last != &modified => img_edit_job(),
-                    None => img_edit_job(),
-                    _ => files_list[index].time,
-                };
-            }
+
+            let img_edit_job = || match &file.other.jobs.resize {
+                Some(resize) => {
+                    match resize_image(file, resize) {
+                        Ok(k) => k,
+                        Err(e) => {
+                            println!("{}", e);
+                            return None;
+                        }
+                    };
+                    Some(modified)
+                }
+                None => Some(modified),
+            };
+            files_list[index].time = match time {
+                Some(last) if last != &modified => img_edit_job(),
+                None => img_edit_job(),
+                _ => files_list[index].time,
+            };
         }
         if let Mode::Compile = mode {
             return;
@@ -103,19 +87,12 @@ fn main() {
     }
 }
 
-fn resize_image(
-    global_size: Option<&Resize>,
-    file: &FileWatch,
-    resize: Resize,
-) -> Result<(), String> {
+fn resize_image(file: &FileWatch, resize: &Resize) -> Result<(), String> {
     let path_str = &file.path;
     let output = &file.output;
     let path = Path::new(path_str);
     let img = image::open(path).set_error(&format!("failed to open file {}", path.display()))?;
-    let filter_type = resize
-        .filter
-        .or(global_size.and_then(|x| x.filter))
-        .unwrap_or(FilterType::Gaussian);
+    let filter_type = resize.filter.unwrap_or(FilterType::Gaussian);
     let size = &resize.size;
     println!(
         "updating image file\n{}\nto\n{}\nWith {}\n\n\n",
@@ -148,4 +125,14 @@ fn when_modified(path: &Path) -> Result<SystemTime, String> {
                 path.display()
             )),
     )?
+}
+
+fn file_share_or_combine(
+    settings_one: SharedSettings,
+    settings_two: SharedSettings,
+) -> SharedSettings {
+    let resize = settings_one.jobs.resize.or(settings_two.jobs.resize);
+    SharedSettings {
+        jobs: ImgEditJobs { resize: resize },
+    }
 }

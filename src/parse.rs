@@ -8,22 +8,22 @@ use yaml_rust::{yaml::Hash, Yaml, YamlLoader};
 #[derive(Debug, Clone)]
 pub struct Settings {
     pub files_list: Vec<FileWatch>,
-    pub other: ShareSettings,
+    pub other: SharedSettings,
 }
 
 #[derive(Debug, Clone)]
 pub struct FileWatch {
     pub path: String,
     pub output: String,
-    pub other: ShareSettings,
+    pub other: SharedSettings,
 }
 #[derive(Debug, Clone)]
-pub struct ShareSettings {
-    pub jobs: Vec<ImgEditJobs>,
+pub struct SharedSettings {
+    pub jobs: ImgEditJobs,
 }
 #[derive(Debug, Clone)]
-pub enum ImgEditJobs {
-    Resize(Resize),
+pub struct ImgEditJobs {
+    pub resize: Option<Resize>,
 }
 #[derive(Clone)]
 pub struct Resize {
@@ -51,22 +51,20 @@ pub fn parse_config() -> Result<Settings, String> {
         }
     }
 
-    fn get_jobs(yaml: &Hash) -> Result<Vec<ImgEditJobs>, String> {
-        let mut jobs = Vec::new();
-
-        push_some(
-            &mut jobs,
-            match get_size(yaml) {
-                Some(x) => Some(ImgEditJobs::Resize(Resize {
-                    size: x,
-                    filter: resize_filter_getter(
-                        yaml.get(&Yaml::String("resize_filter".to_string())),
-                    )?,
-                })),
-                None => None,
+    fn get_jobs(yaml: &Hash) -> Result<ImgEditJobs, String> {
+        Ok(ImgEditJobs {
+            resize: {
+                match get_size(yaml) {
+                    Some(x) => Some(Resize {
+                        size: x,
+                        filter: resize_filter_getter(
+                            yaml.get(&Yaml::String("resize_filter".to_string())),
+                        )?,
+                    }),
+                    None => None,
+                }
             },
-        );
-        Ok(jobs)
+        })
     }
     fn get_size(yaml: &Hash) -> Option<Size> {
         let width = yaml.get(&Yaml::String("width".to_string()));
@@ -169,7 +167,7 @@ pub fn parse_config() -> Result<Settings, String> {
                         Path::new(&path).extension().unwrap().to_str().unwrap()
                     ),
                 },
-                other: ShareSettings {
+                other: SharedSettings {
                     jobs: get_jobs(&file)?,
                 },
             }
@@ -177,7 +175,7 @@ pub fn parse_config() -> Result<Settings, String> {
     }
     Ok(Settings {
         files_list: files_list,
-        other: ShareSettings {
+        other: SharedSettings {
             jobs: get_jobs(&open_file)?,
         },
     })
