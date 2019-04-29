@@ -1,16 +1,41 @@
 use super::error_change::ChangeError;
 
-use std::{convert::TryFrom, fs::File, io::prelude::*, iter::Iterator, path::Path};
+use std::{convert::TryFrom, fmt, fs::File, io::prelude::*, iter::Iterator, path::Path};
 
 use image::FilterType::{self, *};
-use yaml_rust::{Yaml, YamlLoader};
-#[derive(Clone)]
+use yaml_rust::{yaml::Hash, Yaml, YamlLoader};
+
+#[derive(Debug, Clone)]
+pub struct Settings {
+    pub files_list: Vec<FileWatch>,
+    pub other: SharedSettings,
+}
+
+#[derive(Debug, Clone)]
 pub struct FileWatch {
     pub path: String,
     pub output: String,
-    pub size: Size,
-    pub resize_filter: Option<FilterType>,
+    pub other: SharedSettings,
 }
+#[derive(Debug, Clone)]
+pub struct SharedSettings {
+    pub jobs: ImgEditJobs,
+}
+#[derive(Debug, Clone)]
+pub struct ImgEditJobs {
+    pub resize: Option<Resize>,
+}
+#[derive(Clone)]
+pub struct Resize {
+    pub size: Size,
+    pub filter: Option<FilterType>,
+}
+impl fmt::Debug for Resize {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Resize {{ size: {:?} }}", self.size)
+    }
+}
+
 #[derive(Debug, Clone)]
 pub enum Size {
     Width(u32),
@@ -18,7 +43,46 @@ pub enum Size {
     WidthHeight(u32, u32),
 }
 
-pub fn parse_config() -> Result<Vec<FileWatch>, String> {
+pub fn parse_config() -> Result<Settings, String> {
+    fn push_some<T>(vec: &mut Vec<T>, value: Option<T>) {
+        match value {
+            Some(x) => vec.push(x),
+            None => (),
+        }
+    }
+
+    fn get_jobs(yaml: &Hash) -> Result<ImgEditJobs, String> {
+        Ok(ImgEditJobs {
+            resize: {
+                match get_size(yaml) {
+                    Some(x) => Some(Resize {
+                        size: x,
+                        filter: resize_filter_getter(
+                            yaml.get(&Yaml::String("resize_filter".to_string())),
+                        )?,
+                    }),
+                    None => None,
+                }
+            },
+        })
+    }
+    fn get_size(yaml: &Hash) -> Option<Size> {
+        let width = yaml.get(&Yaml::String("width".to_string()));
+        let height = yaml.get(&Yaml::String("height".to_string()));
+        Some(match (width, height) {
+            (Some(width), Some(height)) => Size::WidthHeight(
+                u32::try_from(width.clone().into_i64().expect("7")).unwrap(),
+                u32::try_from(height.clone().into_i64().expect("7")).unwrap(),
+            ),
+            (Some(width), None) => {
+                Size::Width(u32::try_from(width.clone().into_i64().expect("7")).unwrap())
+            }
+            (None, Some(height)) => {
+                Size::Height(u32::try_from(height.clone().into_i64().expect("7")).unwrap())
+            }
+            (None, None) => return None,
+        })
+    }
     fn resize_filter_getter(
         yaml: Option<&yaml_rust::yaml::Yaml>,
     ) -> Result<Option<FilterType>, String> {
@@ -62,8 +126,6 @@ pub fn parse_config() -> Result<Vec<FileWatch>, String> {
         .into_vec()
         .set_error("Files section in config is not a list.")?
         .into_iter();
-    let resize_filter =
-        resize_filter_getter(open_file.get(&Yaml::String("resize_filter".to_string())));
     let mut files_as_hash_list = Vec::new();
     for (index, file) in files_list.enumerate() {
         files_as_hash_list.push(
@@ -84,8 +146,6 @@ pub fn parse_config() -> Result<Vec<FileWatch>, String> {
                     "file index {} has a path that is not a string",
                     index
                 ))?;
-            let width = file.get(&Yaml::String("width".to_string()));
-            let height = file.get(&Yaml::String("height".to_string()));
             FileWatch {
                 path: path.clone(),
                 output: match file.get(&Yaml::String("output".to_string())) {
@@ -107,29 +167,16 @@ pub fn parse_config() -> Result<Vec<FileWatch>, String> {
                         Path::new(&path).extension().unwrap().to_str().unwrap()
                     ),
                 },
-                size: match (width, height) {
-                    (Some(width), Some(height)) => Size::WidthHeight(
-                        u32::try_from(width.clone().into_i64().expect("7")).unwrap(),
-                        u32::try_from(height.clone().into_i64().expect("7")).unwrap(),
-                    ),
-                    (Some(width), None) => {
-                        Size::Width(u32::try_from(width.clone().into_i64().expect("7")).unwrap())
-                    }
-                    (None, Some(height)) => {
-                        Size::Height(u32::try_from(height.clone().into_i64().expect("7")).unwrap())
-                    }
-                    (None, None) => {
-                        return Err(format!("file index {} has no width nor height", index))
-                    }
-                },
-                resize_filter: match resize_filter_getter(
-                    file.get(&Yaml::String("resize_filter".to_string())),
-                )? {
-                    Some(x) => Some(x),
-                    None => resize_filter.clone()?,
+                other: SharedSettings {
+                    jobs: get_jobs(&file)?,
                 },
             }
         })
     }
-    Ok(files_list)
+    Ok(Settings {
+        files_list: files_list,
+        other: SharedSettings {
+            jobs: get_jobs(&open_file)?,
+        },
+    })
 }
