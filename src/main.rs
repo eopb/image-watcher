@@ -15,7 +15,7 @@ use std::{
     time::{self, SystemTime},
 };
 
-use parse::{parse_config, FileWatch, ImgEditJob, Resize, Settings, Size};
+use parse::{parse_config, FileWatch, ImgEditJobs, Resize, Settings, Size};
 
 #[derive(Clone)]
 struct FileWatched {
@@ -59,7 +59,7 @@ fn main() {
             };
             for job in file.other.jobs.clone() {
                 let img_edit_job = match job {
-                    ImgEditJob::Resize(resize) => || {
+                    ImgEditJobs::Resize(resize) => || {
                         match resize_image(
                             {
                                 match config
@@ -67,7 +67,7 @@ fn main() {
                                     .jobs
                                     .iter()
                                     .map(|x| match x {
-                                        ImgEditJob::Resize(x) => Some(x),
+                                        ImgEditJobs::Resize(x) => Some(x),
                                         _ => None,
                                     })
                                     .filter(|x| x.is_some())

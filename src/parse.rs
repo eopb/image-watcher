@@ -19,10 +19,10 @@ pub struct FileWatch {
 }
 #[derive(Debug, Clone)]
 pub struct ShareSettings {
-    pub jobs: Vec<ImgEditJob>,
+    pub jobs: Vec<ImgEditJobs>,
 }
 #[derive(Debug, Clone)]
-pub enum ImgEditJob {
+pub enum ImgEditJobs {
     Resize(Resize),
 }
 #[derive(Clone)]
@@ -51,13 +51,13 @@ pub fn parse_config() -> Result<Settings, String> {
         }
     }
 
-    fn get_jobs(yaml: &Hash) -> Result<Vec<ImgEditJob>, String> {
+    fn get_jobs(yaml: &Hash) -> Result<Vec<ImgEditJobs>, String> {
         let mut jobs = Vec::new();
 
         push_some(
             &mut jobs,
             match get_size(yaml) {
-                Some(x) => Some(ImgEditJob::Resize(Resize {
+                Some(x) => Some(ImgEditJobs::Resize(Resize {
                     size: x,
                     filter: resize_filter_getter(
                         yaml.get(&Yaml::String("resize_filter".to_string())),
