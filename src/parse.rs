@@ -1,4 +1,4 @@
-use super::error_change::ChangeError;
+use set_error::ChangeError;
 
 use std::{convert::TryFrom, fmt, fs::File, io::prelude::*, iter::Iterator, path::Path};
 

@@ -2,11 +2,10 @@
 #![allow(clippy::module_name_repetitions, clippy::enum_glob_use)]
 
 mod cli;
-mod error_change;
 mod parse;
 
 use cli::Mode;
-use error_change::ChangeError;
+use set_error::ChangeError;
 use image::FilterType;
 use std::{
     iter::Iterator,
