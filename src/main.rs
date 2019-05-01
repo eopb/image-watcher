@@ -5,8 +5,8 @@ mod cli;
 mod parse;
 
 use cli::Mode;
+use image::{DynamicImage, FilterType};
 use set_error::ChangeError;
-use image::FilterType;
 use std::{
     iter::Iterator,
     path::Path,
@@ -86,44 +86,38 @@ fn main() {
     }
 }
 
-fn resize_image(file: &FileWatch, resize: &Resize) -> Result<(), String> {
-    let path_str = &file.path;
-    let output = &file.output;
-    let path = Path::new(path_str);
-    let img = image::open(path).set_error(&format!("failed to open file {}", path.display()))?;
+fn file_open(path_str: String) -> Result<DynamicImage, String> {
+    let path = Path::new(&path_str);
+    image::open(path).set_error(&format!("failed to open file {}", path.display()))
+}
+
+fn resize_image(
+    img: DynamicImage,
+    resize: &Resize,
+) -> Result<DynamicImage, String> {
     let filter_type = resize.filter.unwrap_or(FilterType::Gaussian);
     let size = &resize.size;
-    println!(
-        "updating image file\n{}\nto\n{}\nWith {}\n\n\n",
-        path_str,
-        output,
-        match size {
-            Size::WidthHeight(x, y) => format!("With as close as possible to width {}px and height {}px while keeping aspect ratio", x, y),
-            Size::Width(x) => format!("new width {}px", x),
-            Size::Height(x) => format!("new height {}px", x),
-        }
-    );
+    // println!(
+    //     "updating image file\n{}\nto\n{}\nWith {}\n\n\n",
+    //     path_str,
+    //     output,
+    //     match size {
+    //         Size::WidthHeight(x, y) => format!("With as close as possible to width {}px and height {}px while keeping aspect ratio", x, y),
+    //         Size::Width(x) => format!("new width {}px", x),
+    //         Size::Height(x) => format!("new height {}px", x),
+    //     }
+    // );
     let size = match size {
         Size::WidthHeight(x, y) => (x, y),
         Size::Width(x) => (x, &u32::max_value()),
         Size::Height(x) => (&u32::max_value(), x),
     };
     let img = img.resize(*size.0, *size.1, filter_type);
-    img.save(output).unwrap();
-    Ok(())
+    Ok(img)
 }
 
-fn when_modified(path: &Path) -> Result<SystemTime, String> {
-    Ok::<_, String>(
-        Path::new(path)
-            .metadata()
-            .set_error(&format!("failed to open file {} metadata", path.display()))?
-            .modified()
-            .set_error(&format!(
-                "failed to find files date modifide {}",
-                path.display()
-            )),
-    )?
+fn save(img: DynamicImage, path: String) {
+    img.save(path).unwrap();
 }
 
 fn file_share_or_combine(
