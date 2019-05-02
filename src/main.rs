@@ -77,8 +77,8 @@ fn main() {
     }
     file_builder
         .run_only_once(match mode {
-            Mode::Compile => false,
-            Mode::Watch => true,
+            Mode::Compile => true,
+            Mode::Watch => false,
         })
         .launch()
         .unwrap()
