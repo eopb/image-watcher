@@ -1,5 +1,9 @@
 #![deny(clippy::pedantic)]
-#![allow(clippy::module_name_repetitions, clippy::enum_glob_use)]
+#![allow(
+    clippy::module_name_repetitions,
+    clippy::enum_glob_use,
+    clippy::cast_possible_truncation
+)]
 
 mod cli;
 mod parse;
@@ -26,13 +30,13 @@ struct FileWatched {
 fn main() {
     let mode = Mode::get();
     println!("Parsing config file image_watcher.yaml\n");
-    let config = match parse_config() {
+    let config = dbg!(match parse_config() {
         Ok(x) => x,
         Err(e) => {
             println!("Error: {}", e);
             return;
         }
-    };
+    });
 
     let files_list: Vec<FileWatch> = config
         .files_list
@@ -61,7 +65,11 @@ fn main() {
                 }
             };
             if let Some(x) = (&file.clone()).clone().other.jobs.resize.clone() {
-                watched_file.add_func(move |img| resize_image(&img, &x.clone()))
+                let resize_filter = file.other.resize_filter;
+                watched_file.add_func(move |img| resize_image(&img, &x.clone(), resize_filter))
+            }
+            if let Some(x) = (&file.clone()).clone().other.jobs.blur {
+                watched_file.add_func(move |img| blur_image(&img, x))
             }
             watched_file
         })
@@ -84,8 +92,12 @@ fn file_open(path_str: &str) -> WatchingImageFuncResult {
     }
 }
 
-fn resize_image(img: &DynamicImage, resize: &Resize) -> WatchingImageFuncResult {
-    let filter_type = resize.filter.unwrap_or(FilterType::Gaussian);
+fn resize_image(
+    img: &DynamicImage,
+    resize: &Resize,
+    filter: Option<FilterType>,
+) -> WatchingImageFuncResult {
+    let filter_type = filter.unwrap_or(FilterType::Gaussian);
     let size = &resize.size;
     println!(
         "With {}\n",
@@ -107,6 +119,11 @@ fn resize_image(img: &DynamicImage, resize: &Resize) -> WatchingImageFuncResult 
     Success(img)
 }
 
+fn blur_image(img: &DynamicImage, blur_amount: f32) -> WatchingImageFuncResult {
+    println!("With a blur of {}\n", blur_amount);
+    Success(img.blur(blur_amount))
+}
+
 fn save(img: &DynamicImage, output_path: String) -> Result<(), String> {
     println!("and saving to \"{}\"\n\n------------\n", output_path,);
     img.save(output_path).set_error("Failed to save.")
@@ -117,7 +134,10 @@ fn file_share_or_combine(
     settings_two: SharedSettings,
 ) -> SharedSettings {
     let resize = settings_one.jobs.resize.or(settings_two.jobs.resize);
+    let resize_filter = settings_one.resize_filter.or(settings_two.resize_filter);
+    let blur = settings_one.jobs.blur.or(settings_two.jobs.blur);
     SharedSettings {
-        jobs: ImgEditJobs { resize: resize },
+        jobs: ImgEditJobs { resize, blur },
+        resize_filter,
     }
 }
