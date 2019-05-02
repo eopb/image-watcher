@@ -30,7 +30,7 @@ struct FileWatched {
 
 fn main() {
     let mode = Mode::get();
-    println!("Parsing config file image_watcher.yaml");
+    println!("Parsing config file image_watcher.yaml\n");
     let config = match parse_config() {
         Ok(x) => x,
         Err(e) => {
@@ -38,7 +38,6 @@ fn main() {
             return;
         }
     };
-    dbg!(config.clone());
 
     let files_list: Vec<FileWatch> = config
         .files_list
@@ -69,45 +68,41 @@ fn main() {
             match (&file.clone()).clone().other.jobs.resize.clone() {
                 Some(x) => {
                     let temp_file = file.clone();
-                    watched_file.add_func(move |img| {
-                        resize_image(
-                            img,
-                            x.clone(),
-                            temp_file.clone().path,
-                            temp_file.clone().output,
-                        )
-                    })
+                    watched_file.add_func(move |img| resize_image(img, x.clone()))
                 }
                 None => (),
             }
             watched_file
         })
     }
-    file_builder.launch().unwrap()
+    file_builder
+        .run_only_once(match mode {
+            Mode::Compile => false,
+            Mode::Watch => true,
+        })
+        .launch()
+        .unwrap()
 }
 
 fn file_open(path_str: &str) -> WatchingImageFuncResult {
     let path = Path::new(path_str);
+    println!("Updating image file \"{}\"\n", path_str,);
     match image::open(path) {
         Ok(t) => Success(t),
         Err(_) => Retry(format!("failed to open file {}", path.display())),
     }
 }
 
-fn resize_image(
-    img: DynamicImage,
-    resize: Resize,
-    path: String,
-    output: String,
-) -> WatchingImageFuncResult {
+fn resize_image(img: DynamicImage, resize: Resize) -> WatchingImageFuncResult {
     let filter_type = resize.filter.unwrap_or(FilterType::Gaussian);
     let size = &resize.size;
     println!(
-        "updating image file\n{}\nto\n{}\nWith {}\n\n\n",
-        path,
-        output,
+        "With {}\n",
         match size {
-            Size::WidthHeight(x, y) => format!("With as close as possible to width {}px and height {}px while keeping aspect ratio", x, y),
+            Size::WidthHeight(x, y) => format!(
+                "as close as possible to width {}px and height {}px while keeping aspect ratio",
+                x, y
+            ),
             Size::Width(x) => format!("new width {}px", x),
             Size::Height(x) => format!("new height {}px", x),
         }
@@ -121,8 +116,9 @@ fn resize_image(
     Success(img)
 }
 
-fn save(img: DynamicImage, path: String) -> Result<(), String> {
-    img.save(path).set_error("Failed to save.")
+fn save(img: DynamicImage, output_path: String) -> Result<(), String> {
+    println!("and saving to \"{}\"\n\n------------\n", output_path,);
+    img.save(output_path).set_error("Failed to save.")
 }
 
 fn file_share_or_combine(
