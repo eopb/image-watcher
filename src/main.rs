@@ -54,7 +54,7 @@ fn main() {
             let mut watched_file = {
                 {
                     let temp_file = file.clone();
-                    match WatchedFile::new(file.path.clone(), move |img| {
+                    match WatchedFile::new(&file.path.clone(), move |img| {
                         save(img, temp_file.clone().output.clone())
                     }) {
                         Ok(t) => t,
