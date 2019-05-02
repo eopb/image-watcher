@@ -80,7 +80,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "file-watcher"
-version = "0.0.16"
+version = "0.0.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "set-error 0.0.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -114,9 +114,9 @@ dependencies = [
 
 [[package]]
 name = "image-watcher"
-version = "0.0.12"
+version = "0.0.13"
 dependencies = [
- "file-watcher 0.0.16 (registry+https://github.com/rust-lang/crates.io-index)",
+ "file-watcher 0.0.17 (registry+https://github.com/rust-lang/crates.io-index)",
  "image 0.21.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "read_input 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "set-error 0.0.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -379,7 +379,7 @@ dependencies = [
 "checksum crossbeam-utils 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)" = "2760899e32a1d58d5abb31129f8fae5de75220bc2176e77ff7c627ae45c918d9"
 "checksum deflate 0.7.19 (registry+https://github.com/rust-lang/crates.io-index)" = "8a6abb26e16e8d419b5c78662aa9f82857c2386a073da266840e474d5055ec86"
 "checksum either 1.5.2 (registry+https://github.com/rust-lang/crates.io-index)" = "5527cfe0d098f36e3f8839852688e63c8fff1c90b2b405aef730615f9a7bcf7b"
-"checksum file-watcher 0.0.16 (registry+https://github.com/rust-lang/crates.io-index)" = "92ec2c981b58550391a87b48f5ea51276aaa5edd5858ed76be5955fb3ca773a1"
+"checksum file-watcher 0.0.17 (registry+https://github.com/rust-lang/crates.io-index)" = "b9569519f18caf10a5fe9fa1589ea3df4c88e7c65bad37e31f56a0fd60371d95"
 "checksum gif 0.10.1 (registry+https://github.com/rust-lang/crates.io-index)" = "dd4bca55ac1f213920ce3527ccd62386f1f15fa3f1714aeee1cf93f2c416903f"
 "checksum image 0.21.1 (registry+https://github.com/rust-lang/crates.io-index)" = "293e54ce142a936a39da748ba8178ae6aa1914b82d846a4278f11590c89bf116"
 "checksum inflate 0.4.5 (registry+https://github.com/rust-lang/crates.io-index)" = "1cdb29978cc5797bd8dcc8e5bf7de604891df2a8dc576973d71a281e916db2ff"
