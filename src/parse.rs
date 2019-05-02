@@ -1,6 +1,8 @@
 use set_error::ChangeError;
 
-use std::{convert::TryFrom, fmt, fs::File, io::prelude::*, iter::Iterator, path::Path};
+use std::{
+    convert::TryFrom, fmt, fs::File, io::prelude::*, iter::Iterator, path::Path, string::ToString,
+};
 
 use image::FilterType::{self, *};
 use yaml_rust::{yaml::Hash, Yaml, YamlLoader};
@@ -31,6 +33,7 @@ impl fmt::Debug for SharedSettings {
 #[derive(Debug, Clone)]
 pub struct ImgEditJobs {
     pub resize: Option<Resize>,
+    pub blur: Option<f32>,
 }
 #[derive(Debug, Clone)]
 pub struct Resize {
@@ -48,17 +51,33 @@ pub fn parse_config() -> Result<Settings, String> {
     fn get_jobs(yaml: &Hash) -> Result<ImgEditJobs, String> {
         Ok(ImgEditJobs {
             resize: {
-                match get_size(yaml) {
+                match get_size(yaml)? {
                     Some(x) => Some(Resize { size: x }),
+                    None => None,
+                }
+            },
+            blur: {
+                match yaml.get(&Yaml::String("blur".to_string())) {
+                    Some(x) => Some({
+                        let f = x
+                            .clone()
+                            .into_f64()
+                            .set_error("Blur value is valid: Not Float")?;
+                        if f < f64::from(core::f32::MAX) {
+                            f as f32
+                        } else {
+                            core::f32::MAX
+                        }
+                    }),
                     None => None,
                 }
             },
         })
     }
-    fn get_size(yaml: &Hash) -> Option<Size> {
+    fn get_size(yaml: &Hash) -> Result<Option<Size>, String> {
         let width = yaml.get(&Yaml::String("width".to_string()));
         let height = yaml.get(&Yaml::String("height".to_string()));
-        Some(match (width, height) {
+        Ok(Some(match (width, height) {
             (Some(width), Some(height)) => Size::WidthHeight(
                 u32::try_from(width.clone().into_i64().expect("7")).unwrap(),
                 u32::try_from(height.clone().into_i64().expect("7")).unwrap(),
@@ -69,8 +88,8 @@ pub fn parse_config() -> Result<Settings, String> {
             (None, Some(height)) => {
                 Size::Height(u32::try_from(height.clone().into_i64().expect("7")).unwrap())
             }
-            (None, None) => return None,
-        })
+            (None, None) => return Ok(None),
+        }))
     }
     fn resize_filter_getter(
         yaml: Option<&yaml_rust::yaml::Yaml>,
@@ -166,7 +185,7 @@ pub fn parse_config() -> Result<Settings, String> {
         })
     }
     Ok(Settings {
-        files_list: files_list,
+        files_list,
         other: SharedSettings {
             jobs: get_jobs(&open_file)?,
             resize_filter: resize_filter_getter(

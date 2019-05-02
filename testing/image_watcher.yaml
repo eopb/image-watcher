@@ -1,3 +1,5 @@
+blur: 10.0
+
 files:
   -
     path: 'private\images\backgrounds\goldcrest.jpg'
@@ -6,11 +8,17 @@ files:
     path: 'private\images\backgrounds\downs.jpg'
     width: 1000
   -
+    path: 'private\images\backgrounds\downs.jpg'
+    output: 'private\images\backgrounds\downs2.jpg'
+    width: 1000
+    blur: 100.0
+  -
     path: 'private\images\backgrounds\light.jpg'
     width: 1000
   -
     path: 'private\images\backgrounds\marina.png'
     height: 350
+    blur: 5.0
   -
     path: 'private\images\backgrounds\hand_and_book.JPG'
     width: 460
