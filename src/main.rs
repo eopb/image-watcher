@@ -61,7 +61,8 @@ fn main() {
                 }
             };
             if let Some(x) = (&file.clone()).clone().other.jobs.resize.clone() {
-                watched_file.add_func(move |img| resize_image(&img, &x.clone()))
+                watched_file
+                    .add_func(move |img| resize_image(&img, &x.clone(), &file.other.resize_filter))
             }
             watched_file
         })
@@ -84,8 +85,12 @@ fn file_open(path_str: &str) -> WatchingImageFuncResult {
     }
 }
 
-fn resize_image(img: &DynamicImage, resize: &Resize) -> WatchingImageFuncResult {
-    let filter_type = resize.filter.unwrap_or(FilterType::Gaussian);
+fn resize_image(
+    img: &DynamicImage,
+    resize: &Resize,
+    filter: &Option<FilterType>,
+) -> WatchingImageFuncResult {
+    let filter_type = filter.unwrap_or(FilterType::Gaussian);
     let size = &resize.size;
     println!(
         "With {}\n",
@@ -117,7 +122,9 @@ fn file_share_or_combine(
     settings_two: SharedSettings,
 ) -> SharedSettings {
     let resize = settings_one.jobs.resize.or(settings_two.jobs.resize);
+    let resize_filter = settings_one.resize_filter.or(settings_two.resize_filter);
     SharedSettings {
         jobs: ImgEditJobs { resize: resize },
+        resize_filter,
     }
 }

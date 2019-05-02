@@ -17,23 +17,24 @@ pub struct FileWatch {
     pub output: String,
     pub other: SharedSettings,
 }
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct SharedSettings {
     pub jobs: ImgEditJobs,
+    pub resize_filter: Option<FilterType>,
 }
+impl fmt::Debug for SharedSettings {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "SharedSettings {{ jobs: {:?} }}", self.jobs)
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct ImgEditJobs {
     pub resize: Option<Resize>,
 }
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Resize {
     pub size: Size,
-    pub filter: Option<FilterType>,
-}
-impl fmt::Debug for Resize {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Resize {{ size: {:?} }}", self.size)
-    }
 }
 
 #[derive(Debug, Clone)]
@@ -44,23 +45,11 @@ pub enum Size {
 }
 
 pub fn parse_config() -> Result<Settings, String> {
-    fn push_some<T>(vec: &mut Vec<T>, value: Option<T>) {
-        match value {
-            Some(x) => vec.push(x),
-            None => (),
-        }
-    }
-
     fn get_jobs(yaml: &Hash) -> Result<ImgEditJobs, String> {
         Ok(ImgEditJobs {
             resize: {
                 match get_size(yaml) {
-                    Some(x) => Some(Resize {
-                        size: x,
-                        filter: resize_filter_getter(
-                            yaml.get(&Yaml::String("resize_filter".to_string())),
-                        )?,
-                    }),
+                    Some(x) => Some(Resize { size: x }),
                     None => None,
                 }
             },
@@ -169,6 +158,9 @@ pub fn parse_config() -> Result<Settings, String> {
                 },
                 other: SharedSettings {
                     jobs: get_jobs(&file)?,
+                    resize_filter: resize_filter_getter(
+                        file.get(&Yaml::String("resize_filter".to_string())),
+                    )?,
                 },
             }
         })
@@ -177,6 +169,9 @@ pub fn parse_config() -> Result<Settings, String> {
         files_list: files_list,
         other: SharedSettings {
             jobs: get_jobs(&open_file)?,
+            resize_filter: resize_filter_getter(
+                open_file.get(&Yaml::String("resize_filter".to_string())),
+            )?,
         },
     })
 }
