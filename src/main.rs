@@ -11,14 +11,9 @@ use file_watcher::{
 };
 use image::{DynamicImage, FilterType};
 use set_error::ChangeError;
-use std::{
-    iter::Iterator,
-    path::Path,
-    thread,
-    time::{self, SystemTime},
-};
+use std::{iter::Iterator, path::Path, time::SystemTime};
 
-use parse::{parse_config, FileWatch, ImgEditJobs, Resize, Settings, SharedSettings, Size};
+use parse::{parse_config, FileWatch, ImgEditJobs, Resize, SharedSettings, Size};
 
 type WatchingImageFuncResult = WatchingFuncResult<DynamicImage>;
 
@@ -49,13 +44,13 @@ fn main() {
         })
         .collect();
     let mut file_builder = FileListBuilder::new(file_open);
-    for (index, file) in files_list.clone().into_iter().enumerate() {
+    for file in files_list.clone() {
         file_builder.add_file({
             let mut watched_file = {
                 {
                     let temp_file = file.clone();
                     match WatchedFile::new(&file.path.clone(), move |img| {
-                        save(img, temp_file.clone().output.clone())
+                        save(&img, temp_file.clone().output.clone())
                     }) {
                         Ok(t) => t,
                         Err(s) => {
@@ -65,12 +60,8 @@ fn main() {
                     }
                 }
             };
-            match (&file.clone()).clone().other.jobs.resize.clone() {
-                Some(x) => {
-                    let temp_file = file.clone();
-                    watched_file.add_func(move |img| resize_image(img, x.clone()))
-                }
-                None => (),
+            if let Some(x) = (&file.clone()).clone().other.jobs.resize.clone() {
+                watched_file.add_func(move |img| resize_image(&img, &x.clone()))
             }
             watched_file
         })
@@ -93,7 +84,7 @@ fn file_open(path_str: &str) -> WatchingImageFuncResult {
     }
 }
 
-fn resize_image(img: DynamicImage, resize: Resize) -> WatchingImageFuncResult {
+fn resize_image(img: &DynamicImage, resize: &Resize) -> WatchingImageFuncResult {
     let filter_type = resize.filter.unwrap_or(FilterType::Gaussian);
     let size = &resize.size;
     println!(
@@ -116,7 +107,7 @@ fn resize_image(img: DynamicImage, resize: Resize) -> WatchingImageFuncResult {
     Success(img)
 }
 
-fn save(img: DynamicImage, output_path: String) -> Result<(), String> {
+fn save(img: &DynamicImage, output_path: String) -> Result<(), String> {
     println!("and saving to \"{}\"\n\n------------\n", output_path,);
     img.save(output_path).set_error("Failed to save.")
 }

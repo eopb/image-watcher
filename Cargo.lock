@@ -114,7 +114,7 @@ dependencies = [
 
 [[package]]
 name = "image-watcher"
-version = "0.0.12"
+version = "0.0.13"
 dependencies = [
  "file-watcher 0.0.17 (registry+https://github.com/rust-lang/crates.io-index)",
  "image 0.21.1 (registry+https://github.com/rust-lang/crates.io-index)",
