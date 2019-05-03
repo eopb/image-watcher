@@ -64,7 +64,7 @@ fn main() {
                     }
                 }
             };
-            let jobs = (&file).other.jobs.clone();
+            let jobs = file.other.jobs.clone();
             if let Some(x) = jobs.resize {
                 let resize_filter = file.other.resize_filter;
                 watched_file.add_func(move |img| resize_image(&img, &x, resize_filter))
