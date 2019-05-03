@@ -1,7 +1,8 @@
 use set_error::ChangeError;
 
 use std::{
-    convert::TryFrom, fmt, fs::File, io::prelude::*, iter::Iterator, path::Path, string::ToString,
+    convert::TryFrom, ffi::OsStr, fmt, fs::File, io::prelude::*, iter::Iterator, path::Path,
+    string::ToString,
 };
 
 use image::FilterType::{self, *};
@@ -215,7 +216,7 @@ pub fn parse_config() -> Result<Settings, String> {
                         {
                             let parent = Path::new(&path)
                                 .parent()
-                                .and_then(|x| x.to_str())
+                                .and_then(Path::to_str)
                                 .set_error(&format!(
                                     "file index {} has a output path with invalid parent.",
                                     index
@@ -228,14 +229,14 @@ pub fn parse_config() -> Result<Settings, String> {
                         },
                         Path::new(&path)
                             .file_stem()
-                            .and_then(|x| x.to_str())
+                            .and_then(OsStr::to_str)
                             .set_error(&format!(
                                 "file index {} has a output path with invalid file stem.",
                                 index
                             ))?,
                         Path::new(&path)
                             .extension()
-                            .and_then(|x| x.to_str())
+                            .and_then(OsStr::to_str)
                             .set_error(&format!(
                                 "file index {} has a output path with invalid extension.",
                                 index
