@@ -34,6 +34,10 @@ impl fmt::Debug for SharedSettings {
 pub struct ImgEditJobs {
     pub resize: Option<Resize>,
     pub blur: Option<f32>,
+    pub sharpen: Option<i32>,
+    pub adjust_contrast: Option<f32>,
+    pub brighten: Option<i32>,
+    pub huerotate: Option<i32>,
     pub flipv: bool,
     pub fliph: bool,
     pub rotate90: bool,
@@ -56,6 +60,43 @@ pub enum Size {
 
 pub fn parse_config() -> Result<Settings, String> {
     fn get_jobs(yaml: &Hash) -> Result<ImgEditJobs, String> {
+        fn get_i32(yaml: &Hash, field: &str) -> Result<Option<i32>, String> {
+            Ok(match yaml.get(&Yaml::String(field.to_string())) {
+                Some(x) => Some({
+                    x.clone()
+                        .as_i64()
+                        .and_then(|x| i32::try_from(x).ok())
+                        .set_error(&format!("{} value is valid: Not a valid number", field))?
+                }),
+                None => None,
+            })
+        }
+        fn get_bool(yaml: &Hash, field: &str) -> Result<bool, String> {
+            Ok(match yaml.get(&Yaml::String(field.to_string())) {
+                Some(x) => x
+                    .clone()
+                    .into_bool()
+                    .set_error(&format!("{} value is valid: Not true or false.", field))?,
+                None => false,
+            })
+        }
+        fn get_float(yaml: &Hash, field: &str) -> Result<Option<f32>, String> {
+            Ok(match yaml.get(&Yaml::String(field.to_string())) {
+                Some(x) => Some({
+                    let f = x
+                        .clone()
+                        .into_f64()
+                        .set_error(&format!("{} value is valid: Not Float", field))?;
+                    if f < f64::from(core::f32::MAX) {
+                        f as f32
+                    } else {
+                        core::f32::MAX
+                    }
+                }),
+                None => None,
+            })
+        }
+
         Ok(ImgEditJobs {
             resize: {
                 match get_size(yaml)? {
@@ -63,22 +104,11 @@ pub fn parse_config() -> Result<Settings, String> {
                     None => None,
                 }
             },
-            blur: {
-                match yaml.get(&Yaml::String("blur".to_string())) {
-                    Some(x) => Some({
-                        let f = x
-                            .clone()
-                            .into_f64()
-                            .set_error("Blur value is valid: Not Float")?;
-                        if f < f64::from(core::f32::MAX) {
-                            f as f32
-                        } else {
-                            core::f32::MAX
-                        }
-                    }),
-                    None => None,
-                }
-            },
+            blur: get_float(yaml, "blur")?,
+            sharpen: get_i32(yaml, "sharpen")?,
+            adjust_contrast: get_float(yaml, "contrast")?,
+            brighten: get_i32(yaml, "brighten")?,
+            huerotate: get_i32(yaml, "huerotate")?,
             flipv: get_bool(yaml, "flipv")?,
             fliph: get_bool(yaml, "fliph")?,
             rotate90: get_bool(yaml, "rotate90")?,
@@ -88,29 +118,25 @@ pub fn parse_config() -> Result<Settings, String> {
             invert: get_bool(yaml, "invert")?,
         })
     }
-    fn get_bool(yaml: &Hash, field: &str) -> Result<bool, String> {
-        Ok(match yaml.get(&Yaml::String(field.to_string())) {
-            Some(x) => x
-                .clone()
-                .into_bool()
-                .set_error(&format!("{} value is valid: Not true or false.", field))?,
-            None => false,
-        })
-    }
+
     fn get_size(yaml: &Hash) -> Result<Option<Size>, String> {
-        let width = yaml.get(&Yaml::String("width".to_string()));
-        let height = yaml.get(&Yaml::String("height".to_string()));
+        fn get_u32(yaml: &Hash, field: &str) -> Result<Option<u32>, String> {
+            Ok(match yaml.get(&Yaml::String(field.to_string())) {
+                Some(x) => Some({
+                    x.clone()
+                        .as_i64()
+                        .and_then(|x| u32::try_from(x).ok())
+                        .set_error(&format!("{} value is valid: Not a valid number", field))?
+                }),
+                None => None,
+            })
+        }
+        let width = get_u32(yaml, "width")?;
+        let height = get_u32(yaml, "height")?;
         Ok(Some(match (width, height) {
-            (Some(width), Some(height)) => Size::WidthHeight(
-                u32::try_from(width.clone().into_i64().expect("7")).unwrap(),
-                u32::try_from(height.clone().into_i64().expect("7")).unwrap(),
-            ),
-            (Some(width), None) => {
-                Size::Width(u32::try_from(width.clone().into_i64().expect("7")).unwrap())
-            }
-            (None, Some(height)) => {
-                Size::Height(u32::try_from(height.clone().into_i64().expect("7")).unwrap())
-            }
+            (Some(width), Some(height)) => Size::WidthHeight(width, height),
+            (Some(width), None) => Size::Width(width),
+            (None, Some(height)) => Size::Height(height),
             (None, None) => return Ok(None),
         }))
     }
@@ -187,15 +213,33 @@ pub fn parse_config() -> Result<Settings, String> {
                     None => format!(
                         "{}{}.min.{}",
                         {
-                            let parent = Path::new(&path).parent().unwrap().to_str().unwrap();
+                            let parent = Path::new(&path)
+                                .parent()
+                                .and_then(|x| x.to_str())
+                                .set_error(&format!(
+                                    "file index {} has a output path with invalid parent.",
+                                    index
+                                ))?;
                             if parent.is_empty() {
                                 parent.to_string()
                             } else {
                                 format!("{}/", parent)
                             }
                         },
-                        Path::new(&path).file_stem().unwrap().to_str().unwrap(),
-                        Path::new(&path).extension().unwrap().to_str().unwrap()
+                        Path::new(&path)
+                            .file_stem()
+                            .and_then(|x| x.to_str())
+                            .set_error(&format!(
+                                "file index {} has a output path with invalid file stem.",
+                                index
+                            ))?,
+                        Path::new(&path)
+                            .extension()
+                            .and_then(|x| x.to_str())
+                            .set_error(&format!(
+                                "file index {} has a output path with invalid extension.",
+                                index
+                            ))?
                     ),
                 },
                 other: SharedSettings {

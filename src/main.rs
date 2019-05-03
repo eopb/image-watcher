@@ -72,6 +72,31 @@ fn main() {
             if let Some(x) = jobs.blur {
                 watched_file.add_func(move |img| blur_image(&img, x))
             }
+            //Sharpen does not work for some reason. Output does not look sharp
+            if let Some(x) = jobs.sharpen {
+                watched_file.add_func(move |img| {
+                    println!("With sharpening level {}\n", x);
+                    Success(img.unsharpen(100.0, x))
+                })
+            }
+            if let Some(x) = jobs.adjust_contrast {
+                watched_file.add_func(move |img| {
+                    println!("With contrast level {}\n", x);
+                    Success(img.adjust_contrast(x))
+                })
+            }
+            if let Some(x) = jobs.brighten {
+                watched_file.add_func(move |img| {
+                    println!("With brightness level {}\n", x);
+                    Success(img.brighten(x))
+                })
+            }
+            if let Some(x) = jobs.huerotate {
+                watched_file.add_func(move |img| {
+                    println!("With hue rotation of {}\n", x);
+                    Success(img.huerotate(x))
+                })
+            }
             if jobs.flipv {
                 watched_file.add_func(|img| {
                     println!("And flipping vertically\n");
@@ -120,13 +145,19 @@ fn main() {
             watched_file
         })
     }
-    file_builder
+    match file_builder
         .run_only_once(match mode {
             Mode::Compile => true,
             Mode::Watch => false,
         })
         .launch()
-        .unwrap()
+    {
+        Ok(_) => return,
+        Err(s) => {
+            println!("Error: {}", s);
+            return;
+        }
+    }
 }
 
 fn file_open(path_str: &str) -> WatchingImageFuncResult {
@@ -182,7 +213,13 @@ fn file_share_or_combine(
 ) -> SharedSettings {
     let resize = settings_one.jobs.resize.or(settings_two.jobs.resize);
     let blur = settings_one.jobs.blur.or(settings_two.jobs.blur);
-    let resize_filter = settings_one.resize_filter.or(settings_two.resize_filter);
+    let sharpen = settings_one.jobs.sharpen.or(settings_two.jobs.sharpen);
+    let adjust_contrast = settings_one
+        .jobs
+        .adjust_contrast
+        .or(settings_two.jobs.adjust_contrast);
+    let brighten = settings_one.jobs.brighten.or(settings_two.jobs.brighten);
+    let huerotate = settings_one.jobs.huerotate.or(settings_two.jobs.huerotate);
     let flipv = settings_one.jobs.flipv || settings_two.jobs.flipv;
     let fliph = settings_one.jobs.fliph || settings_two.jobs.fliph;
     let rotate90 = settings_one.jobs.rotate90 || settings_two.jobs.rotate90;
@@ -190,10 +227,15 @@ fn file_share_or_combine(
     let rotate270 = settings_one.jobs.rotate270 || settings_two.jobs.rotate270;
     let grayscale = settings_one.jobs.grayscale || settings_two.jobs.grayscale;
     let invert = settings_one.jobs.invert || settings_two.jobs.invert;
+    let resize_filter = settings_one.resize_filter.or(settings_two.resize_filter);
     SharedSettings {
         jobs: ImgEditJobs {
             resize,
             blur,
+            sharpen,
+            adjust_contrast,
+            brighten,
+            huerotate,
             flipv,
             fliph,
             rotate90,
