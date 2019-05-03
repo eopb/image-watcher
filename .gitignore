@@ -4,3 +4,7 @@
 *.map
 *.min.*
 *.exe
+*.jpg
+*.jpeg
+*.JPG
+*.png
