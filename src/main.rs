@@ -30,13 +30,13 @@ struct FileWatched {
 fn main() {
     let mode = Mode::get();
     println!("Parsing config file image_watcher.yaml\n");
-    let config = dbg!(match parse_config() {
+    let config = match parse_config() {
         Ok(x) => x,
         Err(e) => {
             println!("Error: {}", e);
             return;
         }
-    });
+    };
 
     let files_list: Vec<FileWatch> = config
         .files_list
