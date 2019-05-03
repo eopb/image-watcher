@@ -43,18 +43,18 @@ fn main() {
         .clone()
         .into_iter()
         .map(|x| FileWatch {
-            other: file_share_or_combine(x.other.clone(), config.other.clone()),
-            ..x.clone()
+            other: file_share_or_combine(x.other, config.other.clone()),
+            ..x
         })
         .collect();
     let mut file_builder = FileListBuilder::new(file_open);
-    for file in files_list.clone() {
+    for file in files_list {
         file_builder.add_file({
             let mut watched_file = {
                 {
                     let temp_file = file.clone();
-                    match WatchedFile::new(&file.path.clone(), move |img| {
-                        save(&img, temp_file.clone().output.clone())
+                    match WatchedFile::new(&file.path, move |img| {
+                        save(&img, temp_file.output.clone())
                     }) {
                         Ok(t) => t,
                         Err(s) => {
@@ -64,10 +64,10 @@ fn main() {
                     }
                 }
             };
-            let jobs = (&file.clone()).clone().other.jobs;
+            let jobs = (&file).other.jobs.clone();
             if let Some(x) = jobs.resize {
                 let resize_filter = file.other.resize_filter;
-                watched_file.add_func(move |img| resize_image(&img, &x.clone(), resize_filter))
+                watched_file.add_func(move |img| resize_image(&img, &x, resize_filter))
             }
             if let Some(x) = jobs.blur {
                 watched_file.add_func(move |img| blur_image(&img, x))

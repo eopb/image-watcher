@@ -20,11 +20,13 @@ pub struct FileWatch {
     pub output: String,
     pub other: SharedSettings,
 }
+
 #[derive(Clone)]
 pub struct SharedSettings {
     pub jobs: ImgEditJobs,
     pub resize_filter: Option<FilterType>,
 }
+
 impl fmt::Debug for SharedSettings {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "SharedSettings {{ jobs: {:?} }}", self.jobs)
@@ -64,8 +66,7 @@ pub fn parse_config() -> Result<Settings, String> {
         fn get_i32(yaml: &Hash, field: &str) -> Result<Option<i32>, String> {
             Ok(match yaml.get(&Yaml::String(field.to_string())) {
                 Some(x) => Some({
-                    x.clone()
-                        .as_i64()
+                    x.as_i64()
                         .and_then(|x| i32::try_from(x).ok())
                         .set_error(&format!("{} value is valid: Not a valid number", field))?
                 }),
@@ -124,8 +125,7 @@ pub fn parse_config() -> Result<Settings, String> {
         fn get_u32(yaml: &Hash, field: &str) -> Result<Option<u32>, String> {
             Ok(match yaml.get(&Yaml::String(field.to_string())) {
                 Some(x) => Some({
-                    x.clone()
-                        .as_i64()
+                    x.as_i64()
                         .and_then(|x| u32::try_from(x).ok())
                         .set_error(&format!("{} value is valid: Not a valid number", field))?
                 }),
@@ -187,8 +187,7 @@ pub fn parse_config() -> Result<Settings, String> {
     let mut files_as_hash_list = Vec::new();
     for (index, file) in files_list.enumerate() {
         files_as_hash_list.push(
-            file.clone()
-                .into_hash()
+            file.into_hash()
                 .set_error(&format!("file index {} is not a hash", index))?,
         )
     }
