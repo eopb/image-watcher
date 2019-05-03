@@ -64,12 +64,58 @@ fn main() {
                     }
                 }
             };
-            if let Some(x) = (&file.clone()).clone().other.jobs.resize.clone() {
+            let jobs = (&file.clone()).clone().other.jobs;
+            if let Some(x) = jobs.resize {
                 let resize_filter = file.other.resize_filter;
                 watched_file.add_func(move |img| resize_image(&img, &x.clone(), resize_filter))
             }
-            if let Some(x) = (&file.clone()).clone().other.jobs.blur {
+            if let Some(x) = jobs.blur {
                 watched_file.add_func(move |img| blur_image(&img, x))
+            }
+            if jobs.flipv {
+                watched_file.add_func(|img| {
+                    println!("And flipping vertically\n");
+                    Success(img.flipv())
+                })
+            }
+            if jobs.fliph {
+                watched_file.add_func(|img| {
+                    println!("And flipping horizontally\n");
+                    Success(img.fliph())
+                })
+            }
+            if jobs.rotate90 {
+                watched_file.add_func(|img| {
+                    println!("And rotating 90 degrees\n");
+                    Success(img.rotate90())
+                })
+            }
+            if jobs.rotate180 {
+                watched_file.add_func(|img| {
+                    println!("And rotating 180 degrees\n");
+                    Success(img.rotate180())
+                })
+            }
+            if jobs.rotate270 {
+                watched_file.add_func(|img| {
+                    println!("And rotating 270 degrees\n");
+                    Success(img.rotate270())
+                })
+            }
+            if jobs.grayscale {
+                watched_file.add_func(|img| {
+                    println!("And changing image to grayscale\n");
+                    Success(img.grayscale())
+                })
+            }
+            if jobs.invert {
+                watched_file.add_func(|mut img| {
+                    println!("And inverting image\n");
+                    Success({
+                        img.invert();
+                        img
+                    })
+                })
             }
             watched_file
         })
@@ -129,15 +175,33 @@ fn save(img: &DynamicImage, output_path: String) -> Result<(), String> {
     img.save(output_path).set_error("Failed to save.")
 }
 
+#[allow(clippy::similar_names)]
 fn file_share_or_combine(
     settings_one: SharedSettings,
     settings_two: SharedSettings,
 ) -> SharedSettings {
     let resize = settings_one.jobs.resize.or(settings_two.jobs.resize);
-    let resize_filter = settings_one.resize_filter.or(settings_two.resize_filter);
     let blur = settings_one.jobs.blur.or(settings_two.jobs.blur);
+    let resize_filter = settings_one.resize_filter.or(settings_two.resize_filter);
+    let flipv = settings_one.jobs.flipv || settings_two.jobs.flipv;
+    let fliph = settings_one.jobs.fliph || settings_two.jobs.fliph;
+    let rotate90 = settings_one.jobs.rotate90 || settings_two.jobs.rotate90;
+    let rotate180 = settings_one.jobs.rotate180 || settings_two.jobs.rotate180;
+    let rotate270 = settings_one.jobs.rotate270 || settings_two.jobs.rotate270;
+    let grayscale = settings_one.jobs.grayscale || settings_two.jobs.grayscale;
+    let invert = settings_one.jobs.invert || settings_two.jobs.invert;
     SharedSettings {
-        jobs: ImgEditJobs { resize, blur },
+        jobs: ImgEditJobs {
+            resize,
+            blur,
+            flipv,
+            fliph,
+            rotate90,
+            rotate180,
+            rotate270,
+            grayscale,
+            invert,
+        },
         resize_filter,
     }
 }

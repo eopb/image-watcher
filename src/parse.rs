@@ -34,6 +34,13 @@ impl fmt::Debug for SharedSettings {
 pub struct ImgEditJobs {
     pub resize: Option<Resize>,
     pub blur: Option<f32>,
+    pub flipv: bool,
+    pub fliph: bool,
+    pub rotate90: bool,
+    pub rotate180: bool,
+    pub rotate270: bool,
+    pub grayscale: bool,
+    pub invert: bool,
 }
 #[derive(Debug, Clone)]
 pub struct Resize {
@@ -72,6 +79,22 @@ pub fn parse_config() -> Result<Settings, String> {
                     None => None,
                 }
             },
+            flipv: get_bool(yaml, "flipv")?,
+            fliph: get_bool(yaml, "fliph")?,
+            rotate90: get_bool(yaml, "rotate90")?,
+            rotate180: get_bool(yaml, "rotate180")?,
+            rotate270: get_bool(yaml, "rotate270")?,
+            grayscale: get_bool(yaml, "grayscale")?,
+            invert: get_bool(yaml, "invert")?,
+        })
+    }
+    fn get_bool(yaml: &Hash, field: &str) -> Result<bool, String> {
+        Ok(match yaml.get(&Yaml::String(field.to_string())) {
+            Some(x) => x
+                .clone()
+                .into_bool()
+                .set_error(&format!("{} value is valid: Not true or false.", field))?,
+            None => false,
         })
     }
     fn get_size(yaml: &Hash) -> Result<Option<Size>, String> {
