@@ -2,38 +2,38 @@ blur: 10.0
 
 files:
   -
-    path: 'private\images\backgrounds\goldcrest.jpg'
+    path: 'private/images/backgrounds/goldcrest.jpg'
     height: 400
   -
-    path: 'private\images\backgrounds\downs.jpg'
+    path: 'private/images/backgrounds/downs.jpg'
     width: 1000
   -
-    path: 'private\images\backgrounds\downs.jpg'
-    output: 'private\images\backgrounds\downs2.jpg'
+    path: 'private/images/backgrounds/downs.jpg'
+    output: 'private/images/backgrounds/downs2.jpg'
     width: 1000
     blur: 100.0
   -
-    path: 'private\images\backgrounds\light.jpg'
+    path: 'private/images/backgrounds/light.jpg'
     width: 1000
   -
-    path: 'private\images\backgrounds\marina.png'
+    path: 'private/images/backgrounds/marina.png'
     height: 350
     blur: 5.0
   -
-    path: 'private\images\backgrounds\hand_and_book.JPG'
+    path: 'private/images/backgrounds/hand_and_book.JPG'
     width: 460
   -
-    path: 'private\images\backgrounds\abstract.jpg'
+    path: 'private/images/backgrounds/abstract.jpg'
     width: 460
   -
-    path: 'private\images\backgrounds\butter.jpg'
+    path: 'private/images/backgrounds/butter.jpg'
     width: 460
   -
-    path: 'private\images\backgrounds\elderly.jpeg'
+    path: 'private/images/backgrounds/elderly.jpeg'
     width: 460
   -
-    path: 'private\images\backgrounds\flower.jpg'
+    path: 'private/images/backgrounds/flower.jpg'
     width: 460
   -
-    path: 'private\images\backgrounds\blue.jpg'
+    path: 'private/images/backgrounds/blue.jpg'
     width: 460
