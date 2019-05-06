@@ -29,6 +29,14 @@ struct FileWatched {
 
 fn main() {
     let mode = Mode::get();
+    println!(
+        "Using {} mode",
+        match mode {
+            Mode::Compile => "compile",
+            Mode::Watch => "watch",
+        }
+    );
+
     println!("Parsing config file image_watcher.yaml\n");
     let config = match parse_config() {
         Ok(x) => x,
