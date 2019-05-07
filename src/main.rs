@@ -30,7 +30,7 @@ struct FileWatched {
 fn main() {
     let mode = Mode::get();
     println!(
-        "Using {} mode",
+        "Using {} mode.",
         match mode {
             Mode::Compile => "compile",
             Mode::Watch => "watch",

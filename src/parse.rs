@@ -1,11 +1,10 @@
+use image::FilterType::{self, *};
+use read_input::prelude::*;
 use set_error::ChangeError;
-
 use std::{
     convert::TryFrom, ffi::OsStr, fmt, fs::File, io::prelude::*, iter::Iterator, path::Path,
-    string::ToString,
+    str::FromStr, string::ToString,
 };
-
-use image::FilterType::{self, *};
 use yaml_rust::{yaml::Hash, Yaml, YamlLoader};
 
 #[derive(Debug, Clone)]
@@ -162,21 +161,34 @@ pub fn parse_config() -> Result<Settings, String> {
             None => None,
         })
     }
-    let open_file = {
-        YamlLoader::load_from_str(&{
-            let mut contents = String::new();
+    fn load_file() -> Result<Hash, String> {
+        Ok({
+            YamlLoader::load_from_str(&{
+                let mut contents = String::new();
 
-            File::open("image_watcher.yaml")
-                .set_error("Failed to open config file.")?
+                match File::open("image_watcher.yaml") {
+                    Ok(x) => x,
+                    Err(_) => {
+                        let fail_msg = "Failed to open config file.";
+                        println!("{}",fail_msg);
+                        input::<NewTypeFile>()
+                            .repeat_msg("Input path to config file: ")
+                            .err(fail_msg)
+                            .get()
+                            .0
+                    }
+                }
                 .read_to_string(&mut contents)
                 .set_error("Failed to open read file.")?;
-            contents
-        })
-        .set_error("Failed to parse config file.")?[0]
-            .clone()
+                contents
+            })
+            .set_error("Failed to parse config file.")?[0]
+                .clone()
+        }
+        .into_hash()
+        .set_error("Base of the file not a hash.")?)
     }
-    .into_hash()
-    .set_error("Base of the file not a hash.")?;
+    let open_file = load_file()?;
     let files_list = open_file
         .get(&Yaml::String("files".to_string()))
         .set_error("No files section in config file.")?
@@ -260,4 +272,14 @@ pub fn parse_config() -> Result<Settings, String> {
             )?,
         },
     })
+}
+
+struct NewTypeFile(File);
+
+impl FromStr for NewTypeFile {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(NewTypeFile(File::open(s).ok().ok_or(())?))
+    }
 }
