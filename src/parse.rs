@@ -170,7 +170,7 @@ pub fn parse_config() -> Result<Settings, String> {
                     Ok(x) => x,
                     Err(_) => {
                         let fail_msg = "Failed to open config file.";
-                        println!("{}",fail_msg);
+                        println!("{}", fail_msg);
                         input::<NewTypeFile>()
                             .repeat_msg("Input path to config file: ")
                             .err(fail_msg)
