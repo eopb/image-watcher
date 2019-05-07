@@ -8,3 +8,5 @@
 *.jpeg
 *.JPG
 *.png
+
+/testing/image-watcher
