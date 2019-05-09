@@ -16,7 +16,7 @@ pub struct Settings {
 #[derive(Debug, Clone)]
 pub struct FileWatch {
     pub path: String,
-    pub output: String,
+    pub output: Option<String>,
     pub other: SharedSettings,
 }
 
@@ -218,41 +218,11 @@ pub fn parse_config() -> Result<Settings, String> {
             FileWatch {
                 path: path.clone(),
                 output: match file.get(&Yaml::String("output".to_string())) {
-                    Some(x) => x.clone().into_string().set_error(&format!(
+                    Some(x) => Some(x.clone().into_string().set_error(&format!(
                         "file index {} has a output path that is not a string",
                         index
-                    ))?,
-                    None => format!(
-                        "{}{}.min.{}",
-                        {
-                            let parent = Path::new(&path)
-                                .parent()
-                                .and_then(Path::to_str)
-                                .set_error(&format!(
-                                    "file index {} has a output path with invalid parent.",
-                                    index
-                                ))?;
-                            if parent.is_empty() {
-                                parent.to_string()
-                            } else {
-                                format!("{}/", parent)
-                            }
-                        },
-                        Path::new(&path)
-                            .file_stem()
-                            .and_then(OsStr::to_str)
-                            .set_error(&format!(
-                                "file index {} has a output path with invalid file stem.",
-                                index
-                            ))?,
-                        Path::new(&path)
-                            .extension()
-                            .and_then(OsStr::to_str)
-                            .set_error(&format!(
-                                "file index {} has a output path with invalid extension.",
-                                index
-                            ))?
-                    ),
+                    ))?),
+                    None => None,
                 },
                 other: SharedSettings {
                     jobs: get_jobs(&file)?,
