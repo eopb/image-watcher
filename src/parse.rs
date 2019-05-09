@@ -2,8 +2,7 @@ use image::FilterType::{self, *};
 use read_input::prelude::*;
 use set_error::ChangeError;
 use std::{
-    convert::TryFrom, ffi::OsStr, fmt, fs::File, io::prelude::*, iter::Iterator, path::Path,
-    str::FromStr, string::ToString,
+    convert::TryFrom, fmt, fs::File, io::prelude::*, iter::Iterator, str::FromStr, string::ToString,
 };
 use yaml_rust::{yaml::Hash, Yaml, YamlLoader};
 
