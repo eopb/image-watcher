@@ -63,13 +63,13 @@ The transforms available include.
 | adjust_contrast |   ✓    |   ✓   |          Changes image contrast.           |  Float  |          Negative values decrease and  positive values increase           |
 | brighten        |   ✓    |   ✓   |              Brightens image.              | Integer |                            Amount to brighten                             |
 | huerotate       |   ✓    |   ✓   |             Rotates image hue.             | Integer |                                  Degrees                                  |
-| flipv           |   ✓    |   ✓   |          Flips image vertically.           | boolean |                              `True`/`False`                               |
-| fliph           |   ✓    |   ✓   |         Flips image horizontally.          | boolean |                              `True`/`False`                               |
-| rotate90        |   ✓    |   ✓   |         Rotates image 90 degrees .         | boolean |                              `True`/`False`                               |
-| rotate180       |   ✓    |   ✓   |         Rotates image 180 degrees.         | boolean |                              `True`/`False`                               |
-| rotate270       |   ✓    |   ✓   |         Rotates image 270 degrees.         | boolean |                              `True`/`False`                               |
-| grayscale       |   ✓    |   ✓   |           Makes image grayscale.           | boolean |                              `True`/`False`                               |
-| invert          |   ✓    |   ✓   |               Inverts image.               | boolean |                              `True`/`False`                               |
+| flipv           |   ✓    |   ✓   |          Flips image vertically.           | Boolean |                              `True`/`False`                               |
+| fliph           |   ✓    |   ✓   |         Flips image horizontally.          | Boolean |                              `True`/`False`                               |
+| rotate90        |   ✓    |   ✓   |         Rotates image 90 degrees .         | Boolean |                              `True`/`False`                               |
+| rotate180       |   ✓    |   ✓   |         Rotates image 180 degrees.         | Boolean |                              `True`/`False`                               |
+| rotate270       |   ✓    |   ✓   |         Rotates image 270 degrees.         | Boolean |                              `True`/`False`                               |
+| grayscale       |   ✓    |   ✓   |           Makes image grayscale.           | Boolean |                              `True`/`False`                               |
+| invert          |   ✓    |   ✓   |               Inverts image.               | Boolean |                              `True`/`False`                               |
 
 
 
