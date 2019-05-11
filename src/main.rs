@@ -62,7 +62,7 @@ fn main() {
                 {
                     let temp_file = file.clone();
                     match WatchedFile::new(&file.path, move |img| {
-                        save(&img, temp_file.output.clone(), temp_file.path.clone())
+                        save(&img, temp_file.output.clone(), &temp_file.path)
                     }) {
                         Ok(t) => t,
                         Err(s) => {
@@ -209,7 +209,7 @@ fn blur_image(img: &DynamicImage, blur_amount: f32) -> WatchingImageFuncResult {
     Success(img.blur(blur_amount))
 }
 
-fn save(img: &DynamicImage, output_path: Option<String>, input_path: String) -> Result<(), String> {
+fn save(img: &DynamicImage, output_path: Option<String>, input_path: &str) -> Result<(), String> {
     fn output_path_from(path: &Path) -> Result<String, String> {
         Ok(format!(
             "{}{}.min.{}",
@@ -217,7 +217,7 @@ fn save(img: &DynamicImage, output_path: Option<String>, input_path: String) -> 
                 let parent = Path::new(&path)
                     .parent()
                     .and_then(Path::to_str)
-                    .set_error(&format!("file has a output path with invalid parent."))?;
+                    .set_error("file has a output path with invalid parent.")?;
                 if parent.is_empty() {
                     parent.to_string()
                 } else {
@@ -227,26 +227,23 @@ fn save(img: &DynamicImage, output_path: Option<String>, input_path: String) -> 
             Path::new(&path)
                 .file_stem()
                 .and_then(OsStr::to_str)
-                .set_error(&format!("file has a output path with invalid file stem."))?,
+                .set_error("file has a output path with invalid file stem.")?,
             Path::new(&path)
                 .extension()
                 .and_then(OsStr::to_str)
-                .set_error(&format!("file has a output path with invalid extension."))?
+                .set_error("file has a output path with invalid extension.")?
         ))
     }
 
     img.save({
         print!("and saving to ");
-        let ptemp = match output_path {
-            Some(output_path) => {
-                print!("\"{}\"", output_path);
-                output_path
-            }
-            None => {
-                let output_path = output_path_from(Path::new(&input_path))?;
-                print!("auto generated path \"{}\"", output_path);
-                output_path
-            }
+        let ptemp = if let Some(output_path) = output_path {
+            print!("\"{}\"", output_path);
+            output_path
+        } else {
+            let output_path = output_path_from(Path::new(&input_path))?;
+            print!("auto generated path \"{}\"", output_path);
+            output_path
         };
         println!("\n\n------------\n");
         ptemp
