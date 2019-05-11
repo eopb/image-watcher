@@ -53,24 +53,24 @@ The transforms available include.
 
 | Name            | global | local | type |
 | :-------------- | :----: | :---: | ---: |
-| width           |  [ ]   |  [x]  |      |
-| height          |  [ ]   |  [x]  |      |
-| blur            |  [ ]   |  [x]  |      |
-| sharpen         |  [ ]   |  [x]  |      |
-| adjust_contrast |  [ ]   |  [x]  |      |
-| brighten        |  [ ]   |  [x]  |      |
-| huerotate       |  [ ]   |  [x]  |      |
-| flipv           |  [ ]   |  [x]  |      |
-| fliph           |  [ ]   |  [x]  |      |
-| rotate90        |  [ ]   |  [x]  |      |
-| rotate180       |  [ ]   |  [x]  |      |
-| rotate270       |  [ ]   |  [x]  |      |
-| grayscale       |  [ ]   |  [x]  |      |
-| invert          |  [ ]   |  [x]  |      |
+| width           |   ✓    |   ✓   |      |
+| height          |   ✓    |   ✓   |      |
+| blur            |   ✓    |   ✓   |      |
+| sharpen         |   ✓    |   ✓   |      |
+| adjust_contrast |   ✓    |   ✓   |      |
+| brighten        |   ✓    |   ✓   |      |
+| huerotate       |   ✓    |   ✓   |      |
+| flipv           |   ✓    |   ✓   |      |
+| fliph           |   ✓    |   ✓   |      |
+| rotate90        |   ✓    |   ✓   |      |
+| rotate180       |   ✓    |   ✓   |      |
+| rotate270       |   ✓    |   ✓   |      |
+| grayscale       |   ✓    |   ✓   |      |
+| invert          |   ✓    |   ✓   |      |
 
 
 
-
+  
 resize
 blur
 sharpen
@@ -84,6 +84,8 @@ rotate180
 rotate270
 grayscale
 invert
+
+
 
 ## CLI options
 
