@@ -95,4 +95,18 @@ to compile the images and watch for changes to them.
 
 ---
 
+## Downloads
+
+### Stable
+
+[Windows](https://gitlab.com/efunb/image-watcher/-/jobs/artifacts/stable/raw/files/image-watcher.exe?job=windows-optimized) 
+
+[Linux](https://gitlab.com/efunb/image-watcher/-/jobs/artifacts/stable/raw/files/image-watcher?job=linux-optimized) 
+
+### Nightly
+
+[Windows](https://gitlab.com/efunb/image-watcher/-/jobs/artifacts/master/raw/files/image-watcher.exe?job=windows-optimized) 
+
+[Linux](https://gitlab.com/efunb/image-watcher/-/jobs/artifacts/master/raw/files/image-watcher?job=linux-optimized) 
+
 ## TODO
