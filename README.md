@@ -2,8 +2,8 @@
 
 ## What is it
 
-`image-watcher` is a CLI tool that "compiles" high-resolution images to low-resolution ones.
-It also has the option to "watch" source images for changes and update the low-resolution images with these changes.
+`image-watcher` is a CLI tool that "compiles" images using various transforms set in a configuration file to produce new transformed images.
+`image-watcher` also has the option to "watch" source images for changes and update the transformed images with every new change.
 
 ## Why did I make it
 
@@ -30,6 +30,10 @@ Make a file called `image_watcher.yaml` in your repository.
 Here is an example of what it can look like.
 
 ```yaml
+# Global settings are set here and apply to all images
+grayscale: true
+
+# Each file is set in this list. Each file can have their own transforms.
 files:
   -
     path: 'private\images\backgrounds\hand_and_book.JPG'
@@ -44,6 +48,42 @@ files:
     path: 'private\images\backgrounds\light.jpg'
     width: 1000
 ```
+
+The transforms available include.
+
+| Name            | global | local | type |
+| :-------------- | :----: | :---: | ---: |
+| width           |  [ ]   |  [x]  |      |
+| height          |  [ ]   |  [x]  |      |
+| blur            |  [ ]   |  [x]  |      |
+| sharpen         |  [ ]   |  [x]  |      |
+| adjust_contrast |  [ ]   |  [x]  |      |
+| brighten        |  [ ]   |  [x]  |      |
+| huerotate       |  [ ]   |  [x]  |      |
+| flipv           |  [ ]   |  [x]  |      |
+| fliph           |  [ ]   |  [x]  |      |
+| rotate90        |  [ ]   |  [x]  |      |
+| rotate180       |  [ ]   |  [x]  |      |
+| rotate270       |  [ ]   |  [x]  |      |
+| grayscale       |  [ ]   |  [x]  |      |
+| invert          |  [ ]   |  [x]  |      |
+
+
+
+
+resize
+blur
+sharpen
+adjust_contrast
+brighten
+huerotate
+flipv
+fliph
+rotate90
+rotate180
+rotate270
+grayscale
+invert
 
 ## CLI options
 
