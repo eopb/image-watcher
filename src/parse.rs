@@ -165,17 +165,16 @@ pub fn parse_config() -> Result<Settings, String> {
             YamlLoader::load_from_str(&{
                 let mut contents = String::new();
 
-                match File::open("image_watcher.yaml") {
-                    Ok(x) => x,
-                    Err(_) => {
-                        let fail_msg = "Failed to open config file.";
-                        println!("{}", fail_msg);
-                        input::<NewTypeFile>()
-                            .repeat_msg("Input path to config file: ")
-                            .err(fail_msg)
-                            .get()
-                            .0
-                    }
+                if let Ok(x) = File::open("image_watcher.yaml") {
+                    x
+                } else {
+                    let fail_msg = "Failed to open config file.";
+                    println!("{}", fail_msg);
+                    input::<NewTypeFile>()
+                        .repeat_msg("Input path to config file: ")
+                        .err(fail_msg)
+                        .get()
+                        .0
                 }
                 .read_to_string(&mut contents)
                 .set_error("Failed to open read file.")?;
@@ -249,6 +248,6 @@ impl FromStr for NewTypeFile {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(NewTypeFile(File::open(s).ok().ok_or(())?))
+        Ok(Self(File::open(s).ok().ok_or(())?))
     }
 }
