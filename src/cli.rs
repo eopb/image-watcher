@@ -1,3 +1,4 @@
+use clap::{self, App, Arg, ArgMatches, SubCommand};
 use read_input::prelude::*;
 use std::str::FromStr;
 
@@ -9,18 +10,18 @@ pub enum Mode {
 use Mode::*;
 
 impl Mode {
-    pub fn get() -> Self {
-        for a in std::env::args() {
-            match Self::from_str(&a) {
-                Ok(x) => return x,
-                Err(_) => continue,
-            }
+    pub fn get(matches: &ArgMatches) -> Self {
+        if matches.is_present("watch") {
+            Mode::Watch
+        } else if matches.is_present("compile") {
+            Mode::Compile
+        } else {
+            input()
+                .repeat_msg("Do you want to run in compile or watch mode?: ")
+                .err("Input the word compile or the word watch.")
+                .default(Mode::Watch)
+                .get()
         }
-        input()
-            .repeat_msg("Do you want to run in compile or watch mode?: ")
-            .err("Input the word compile or the word watch.")
-            .default(Watch)
-            .get()
     }
 }
 

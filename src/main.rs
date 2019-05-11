@@ -8,17 +8,17 @@
 mod cli;
 mod parse;
 
+use clap::{self, App, Arg, SubCommand};
 use cli::Mode;
 use file_watcher::{
     FileListBuilder, WatchedFile,
     WatchingFuncResult::{self, *},
 };
 use image::{DynamicImage, FilterType};
+use parse::{parse_config, FileWatch, ImgEditJobs, Resize, SharedSettings, Size};
+use read_input::prelude::*;
 use set_error::ChangeError;
 use std::{ffi::OsStr, iter::Iterator, path::Path, time::SystemTime};
-
-use parse::{parse_config, FileWatch, ImgEditJobs, Resize, SharedSettings, Size};
-
 type WatchingImageFuncResult = WatchingFuncResult<DynamicImage>;
 
 #[derive(Clone)]
@@ -28,7 +28,27 @@ struct FileWatched {
 }
 
 fn main() {
-    let mode = Mode::get();
+    let mode = Mode::get(&App::new("Image_watcher")
+        .version("0.0.20")
+        .author(
+            "Ethan Brierley. <incoming+efunb-image-watcher-11376789-issue-@incoming.gitlab.com>",
+        )
+        .about("Transforms images.")
+        .arg(
+            Arg::with_name("watch")
+                .long("watch")
+                .short("w")
+                .help("Sets program to watch mode.")
+                .conflicts_with("compile"),
+        )
+        .arg(
+            Arg::with_name("compile")
+                .long("compile")
+                .short("c")
+                .help("Sets program to watch mode.")
+                .conflicts_with("watch"),
+        )
+        .get_matches());
     println!(
         "Using {} mode.",
         match mode {
