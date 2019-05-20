@@ -5,6 +5,8 @@
 `image-watcher` is a CLI tool that "compiles" images using various transforms set in a configuration file to produce new transformed images.
 `image-watcher` also has the option to "watch" source images for changes and update the transformed images with every new change.
 
+![](example.gif)
+
 ## Why did I make it
 
 I was developing a static website that used Pug and SASS to generate HTML and CSS.
