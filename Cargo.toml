@@ -1,6 +1,6 @@
 [package]
 name = "image-watcher"
-version = "0.0.21"
+version = "0.0.22"
 authors = ["Ethan Brierley <ethanboxx@gmail.com>"]
 license = "MIT/Apache-2.0"
 readme = "README.md"
