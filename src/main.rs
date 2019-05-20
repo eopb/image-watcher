@@ -8,7 +8,7 @@
 mod cli;
 mod parse;
 
-use clap::{self, App, Arg, SubCommand};
+use clap::{self, App, Arg};
 use cli::Mode;
 use file_watcher::{
     FileListBuilder, WatchedFile,
@@ -16,9 +16,13 @@ use file_watcher::{
 };
 use image::{DynamicImage, FilterType};
 use parse::{parse_config, FileWatch, ImgEditJobs, Resize, SharedSettings, Size};
-use read_input::prelude::*;
 use set_error::ChangeError;
-use std::{ffi::OsStr, iter::Iterator, path::Path, time::SystemTime, iter::repeat};
+use std::{
+    ffi::OsStr,
+    iter::{repeat, Iterator},
+    path::Path,
+    time::SystemTime,
+};
 type WatchingImageFuncResult = WatchingFuncResult<DynamicImage>;
 
 #[derive(Clone)]

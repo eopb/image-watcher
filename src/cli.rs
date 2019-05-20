@@ -1,4 +1,4 @@
-use clap::{self, App, Arg, ArgMatches, SubCommand};
+use clap::{self, ArgMatches};
 use read_input::prelude::*;
 use std::str::FromStr;
 
