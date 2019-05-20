@@ -1,5 +1,10 @@
 # `image-watcher`
 
+[![pipeline status](https://gitlab.com/efunb/image-watcher/badges/stable/pipeline.svg)](https://gitlab.com/efunb/image-watcher/commits/stable)
+[![License](https://img.shields.io/crates/l/image-watcher.svg)](https://crates.io/crates/image-watcher)
+[![Latest version](https://img.shields.io/crates/v/image-watcher.svg)](https://crates.io/crates/image-watcher)
+[![downloads-badge](https://img.shields.io/crates/d/image-watcher.svg)](https://crates.io/crates/image-watcher)
+
 ## What is it
 
 `image-watcher` is a CLI tool that "compiles" images using various transforms set in a configuration file to produce new transformed images.
