@@ -18,7 +18,7 @@ use image::{DynamicImage, FilterType};
 use parse::{parse_config, FileWatch, ImgEditJobs, Resize, SharedSettings, Size};
 use read_input::prelude::*;
 use set_error::ChangeError;
-use std::{ffi::OsStr, iter::Iterator, path::Path, time::SystemTime};
+use std::{ffi::OsStr, iter::Iterator, path::Path, time::SystemTime, iter::repeat};
 type WatchingImageFuncResult = WatchingFuncResult<DynamicImage>;
 
 #[derive(Clone)]
@@ -265,12 +265,18 @@ fn save(img: &DynamicImage, output_path: Option<String>, input_path: &str) -> Re
             print!("auto generated path \"{}\"", output_path);
             output_path
         };
-        println!("\n\n------------\n");
+        println!("\n\n{}\n", {
+            if let Some((width, _)) = term_size::dimensions() {
+                repeat("-").take(width).collect::<String>()
+            } else {
+                String::from("------------")
+            }
+        });
         ptemp
     })
     .set_error("Failed to save.")
 }
-
+//
 #[allow(clippy::similar_names)]
 fn file_share_or_combine(
     settings_one: SharedSettings,
