@@ -51,25 +51,25 @@ files:
 
 The transforms available include.
 
-| Name            | global | local |                Description                 |  type   |                                   unit                                    |
-| :-------------- | :----: | :---: | :----------------------------------------: | :-----: | :-----------------------------------------------------------------------: |
-| path            |        |   ✓   |            Sets path of image.             | String  |                               Relative path                               |
-| output          |        |   ✓   |     Sets path to save output image to.     | String  |                               Relative path                               |
-| width           |   ✓    |   ✓   | Sets width while preserving aspect ratio.  | Integer |                                  Pixels                                   |
-| height          |   ✓    |   ✓   | Sets height while preserving aspect ratio. | Integer |                                  Pixels                                   |
-| resize_filter   |   ✓    |   ✓   |      Sets filter used when resizing.       | String  | `"Nearest"` / `"Triangle"` / `"CatmullRom"` / `"Gaussian"` / `"Lanczos3"` |
-| blur            |   ✓    |   ✓   |           Gaussian blurs image.            |  Float  |                                   Sigma                                   |
-| sharpen         |   ✓    |   ✓   |              Sharpens image.               | Integer |                                                                           |
-| adjust_contrast |   ✓    |   ✓   |          Changes image contrast.           |  Float  |          Negative values decrease and  positive values increase           |
-| brighten        |   ✓    |   ✓   |              Brightens image.              | Integer |                            Amount to brighten                             |
-| huerotate       |   ✓    |   ✓   |             Rotates image hue.             | Integer |                                  Degrees                                  |
-| flipv           |   ✓    |   ✓   |          Flips image vertically.           | Boolean |                              `True`/`False`                               |
-| fliph           |   ✓    |   ✓   |         Flips image horizontally.          | Boolean |                              `True`/`False`                               |
-| rotate90        |   ✓    |   ✓   |         Rotates image 90 degrees .         | Boolean |                              `True`/`False`                               |
-| rotate180       |   ✓    |   ✓   |         Rotates image 180 degrees.         | Boolean |                              `True`/`False`                               |
-| rotate270       |   ✓    |   ✓   |         Rotates image 270 degrees.         | Boolean |                              `True`/`False`                               |
-| grayscale       |   ✓    |   ✓   |           Makes image grayscale.           | Boolean |                              `True`/`False`                               |
-| invert          |   ✓    |   ✓   |               Inverts image.               | Boolean |                              `True`/`False`                               |
+| Name          | global | local |                Description                 |  type   |                                   unit                                    |
+| :------------ | :----: | :---: | :----------------------------------------: | :-----: | :-----------------------------------------------------------------------: |
+| path          |        |   ✓   |            Sets path of image.             | String  |                               Relative path                               |
+| output        |        |   ✓   |     Sets path to save output image to.     | String  |                               Relative path                               |
+| width         |   ✓    |   ✓   | Sets width while preserving aspect ratio.  | Integer |                                  Pixels                                   |
+| height        |   ✓    |   ✓   | Sets height while preserving aspect ratio. | Integer |                                  Pixels                                   |
+| resize_filter |   ✓    |   ✓   |      Sets filter used when resizing.       | String  | `"Nearest"` / `"Triangle"` / `"CatmullRom"` / `"Gaussian"` / `"Lanczos3"` |
+| blur          |   ✓    |   ✓   |           Gaussian blurs image.            |  Float  |                                   Sigma                                   |
+| sharpen       |   ✓    |   ✓   |              Sharpens image.               | Integer |                                                                           |
+| contrast      |   ✓    |   ✓   |          Changes image contrast.           |  Float  |          Negative values decrease and  positive values increase           |
+| brighten      |   ✓    |   ✓   |              Brightens image.              | Integer |                            Amount to brighten                             |
+| huerotate     |   ✓    |   ✓   |             Rotates image hue.             | Integer |                                  Degrees                                  |
+| flipv         |   ✓    |   ✓   |          Flips image vertically.           | Boolean |                              `True`/`False`                               |
+| fliph         |   ✓    |   ✓   |         Flips image horizontally.          | Boolean |                              `True`/`False`                               |
+| rotate90      |   ✓    |   ✓   |         Rotates image 90 degrees .         | Boolean |                              `True`/`False`                               |
+| rotate180     |   ✓    |   ✓   |         Rotates image 180 degrees.         | Boolean |                              `True`/`False`                               |
+| rotate270     |   ✓    |   ✓   |         Rotates image 270 degrees.         | Boolean |                              `True`/`False`                               |
+| grayscale     |   ✓    |   ✓   |           Makes image grayscale.           | Boolean |                              `True`/`False`                               |
+| invert        |   ✓    |   ✓   |               Inverts image.               | Boolean |                              `True`/`False`                               |
 
 
 
