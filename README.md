@@ -31,7 +31,7 @@ Here is an example of what it can look like.
 
 ```yaml
 # Global settings are set here and apply to all images
-grayscale: true
+grayscale: True
 
 # Each file is set in this list. Each file can have their own transforms.
 files:
