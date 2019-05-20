@@ -1,39 +1,50 @@
-blur: 10.0
 
 files:
   -
-    path: 'private/images/backgrounds/goldcrest.jpg'
-    height: 400
-  -
     path: 'private/images/backgrounds/downs.jpg'
     width: 1000
+  -
+    path: 'private/images/backgrounds/goldcrest.jpg'
+    height: 400
+    width: 1000
+    resize_filter: "Nearest"
+    blur: 10.0
+    sharpen: 10
+    contrast: 50.0
+    brighten: 10
+    huerotate: 90
+    flipv: true
+    fliph: true
+    rotate180: true
+    grayscale: true
+    invert: true
   -
     path: 'private/images/backgrounds/downs.jpg'
     output: 'private/images/backgrounds/downs2.jpg'
-    width: 1000
-    blur: 100.0
+    blur: 10.0
   -
     path: 'private/images/backgrounds/light.jpg'
     width: 1000
+    sharpen: 10
   -
     path: 'private/images/backgrounds/marina.png'
     height: 350
-    blur: 5.0
+    contrast: 50.0
   -
     path: 'private/images/backgrounds/hand_and_book.JPG'
-    width: 460
+    brighten: 10
   -
     path: 'private/images/backgrounds/abstract.jpg'
-    width: 460
+    huerotate: 90
   -
     path: 'private/images/backgrounds/butter.jpg'
-    width: 460
+    flipv: true
   -
     path: 'private/images/backgrounds/elderly.jpeg'
-    width: 460
+    fliph: true
   -
     path: 'private/images/backgrounds/flower.jpg'
-    width: 460
+    rotate180: true
   -
     path: 'private/images/backgrounds/blue.jpg'
-    width: 460
+    grayscale: true

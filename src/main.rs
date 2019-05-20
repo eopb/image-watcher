@@ -8,17 +8,21 @@
 mod cli;
 mod parse;
 
+use clap::{self, App, Arg};
 use cli::Mode;
 use file_watcher::{
     FileListBuilder, WatchedFile,
     WatchingFuncResult::{self, *},
 };
 use image::{DynamicImage, FilterType};
-use set_error::ChangeError;
-use std::{ffi::OsStr, iter::Iterator, path::Path, time::SystemTime};
-
 use parse::{parse_config, FileWatch, ImgEditJobs, Resize, SharedSettings, Size};
-
+use set_error::ChangeError;
+use std::{
+    ffi::OsStr,
+    iter::{repeat, Iterator},
+    path::Path,
+    time::SystemTime,
+};
 type WatchingImageFuncResult = WatchingFuncResult<DynamicImage>;
 
 #[derive(Clone)]
@@ -28,7 +32,27 @@ struct FileWatched {
 }
 
 fn main() {
-    let mode = Mode::get();
+    let mode = Mode::get(&App::new("Image_watcher")
+        .version("0.0.20")
+        .author(
+            "Ethan Brierley. <incoming+efunb-image-watcher-11376789-issue-@incoming.gitlab.com>",
+        )
+        .about("Transforms images.")
+        .arg(
+            Arg::with_name("watch")
+                .long("watch")
+                .short("w")
+                .help("Sets program to watch mode.")
+                .conflicts_with("compile"),
+        )
+        .arg(
+            Arg::with_name("compile")
+                .long("compile")
+                .short("c")
+                .help("Sets program to watch mode.")
+                .conflicts_with("watch"),
+        )
+        .get_matches());
     println!(
         "Using {} mode.",
         match mode {
@@ -37,7 +61,7 @@ fn main() {
         }
     );
 
-    println!("Parsing config file image_watcher.yaml\n");
+    print!("Parsing config file image_watcher.yaml");
     let config = match parse_config() {
         Ok(x) => x,
         Err(e) => {
@@ -45,6 +69,8 @@ fn main() {
             return;
         }
     };
+
+    separator();
 
     let files_list: Vec<FileWatch> = config
         .files_list
@@ -245,7 +271,7 @@ fn save(img: &DynamicImage, output_path: Option<String>, input_path: &str) -> Re
             print!("auto generated path \"{}\"", output_path);
             output_path
         };
-        println!("\n\n------------\n");
+        separator() ;
         ptemp
     })
     .set_error("Failed to save.")
@@ -292,3 +318,11 @@ fn file_share_or_combine(
         resize_filter,
     }
 }
+
+fn separator() {println!("\n\n{}\n", {
+            if let Some((width, _)) = term_size::dimensions() {
+                repeat("-").take(width).collect::<String>()
+            } else {
+                String::from("------------")
+            }
+        })}
