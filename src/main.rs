@@ -271,7 +271,7 @@ fn save(img: &DynamicImage, output_path: Option<String>, input_path: &str) -> Re
             print!("auto generated path \"{}\"", output_path);
             output_path
         };
-        separator() ;
+        separator();
         ptemp
     })
     .set_error("Failed to save.")
@@ -319,10 +319,12 @@ fn file_share_or_combine(
     }
 }
 
-fn separator() {println!("\n\n{}\n", {
-            if let Some((width, _)) = term_size::dimensions() {
-                repeat("-").take(width).collect::<String>()
-            } else {
-                String::from("------------")
-            }
-        })}
+fn separator() {
+    println!("\n\n{}\n", {
+        if let Some((width, _)) = term_size::dimensions() {
+            repeat("-").take(width).collect::<String>()
+        } else {
+            String::from("------------")
+        }
+    })
+}
