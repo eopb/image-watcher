@@ -61,7 +61,7 @@ fn main() {
         }
     );
 
-    println!("Parsing config file image_watcher.yaml\n");
+    print!("Parsing config file image_watcher.yaml");
     let config = match parse_config() {
         Ok(x) => x,
         Err(e) => {
@@ -69,6 +69,8 @@ fn main() {
             return;
         }
     };
+
+    separator();
 
     let files_list: Vec<FileWatch> = config
         .files_list
@@ -269,18 +271,12 @@ fn save(img: &DynamicImage, output_path: Option<String>, input_path: &str) -> Re
             print!("auto generated path \"{}\"", output_path);
             output_path
         };
-        println!("\n\n{}\n", {
-            if let Some((width, _)) = term_size::dimensions() {
-                repeat("-").take(width).collect::<String>()
-            } else {
-                String::from("------------")
-            }
-        });
+        separator() ;
         ptemp
     })
     .set_error("Failed to save.")
 }
-//
+
 #[allow(clippy::similar_names)]
 fn file_share_or_combine(
     settings_one: SharedSettings,
@@ -322,3 +318,11 @@ fn file_share_or_combine(
         resize_filter,
     }
 }
+
+fn separator() {println!("\n\n{}\n", {
+            if let Some((width, _)) = term_size::dimensions() {
+                repeat("-").take(width).collect::<String>()
+            } else {
+                String::from("------------")
+            }
+        })}
