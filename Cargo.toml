@@ -20,3 +20,6 @@ read_input = "0.8"
 set-error = "1"
 file-watcher = "0.0.*"
 clap = "2.33"
+
+[profile.release]
+lto = true
