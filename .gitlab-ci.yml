@@ -4,7 +4,7 @@ image: "rust:latest"
 stages:
   - check
   - test
-  - deploy-examples
+  - deploy
   - publish
   - post-run
 
@@ -34,7 +34,7 @@ benchmarktests:
 
 
 linux-optimized:
-  stage: deploy-examples
+  stage: deploy
   script:
     - cargo build --release
     - rm -r -f files
@@ -47,7 +47,7 @@ linux-optimized:
     expire_in: 2 weeks
 
 windows-optimized:
-  stage: deploy-examples
+  stage: deploy
   script:
     - apt-get update
     - apt-get install gcc -y
