@@ -4,7 +4,7 @@ image: "rust:latest"
 stages:
   - check
   - test
-  - deploy-examples
+  - deploy
   - publish
   - post-run
 
@@ -12,35 +12,30 @@ stages:
 clean-code:
   stage: check
   script:
-    - rustup default nightly
-    - rustup component add rustfmt-preview
+    - rustup component add rustfmt
     - cargo fmt --all -- --check
   allow_failure: true
 
 check:
   stage: check
   script:
-    - rustup default nightly
     - cargo check
 
 
 unittests:
   stage: test
   script:
-    - rustup default nightly
     - cargo test --release
 
 benchmarktests:
   stage: test
   script:
-    - rustup default nightly
     - cargo bench
 
 
 linux-optimized:
-  stage: deploy-examples
+  stage: deploy
   script:
-    - rustup default nightly
     - cargo build --release
     - rm -r -f files
     - mkdir files
@@ -52,9 +47,8 @@ linux-optimized:
     expire_in: 2 weeks
 
 windows-optimized:
-  stage: deploy-examples
+  stage: deploy
   script:
-    - rustup default nightly
     - apt-get update
     - apt-get install gcc -y
     - apt-get install gcc-mingw-w64-x86-64 -y
@@ -64,6 +58,7 @@ windows-optimized:
     - echo [target.x86_64-pc-windows-gnu] >> .cargo/config
     - echo     linker = \"x86_64-w64-mingw32-gcc\" >> .cargo/config
     - echo     ar = \"x86_64-w64-mingw32-gcc-ar\" >> .cargo/config
+    - cp /usr/x86_64-w64-mingw32/lib/crt2.o $(dirname $(rustup which rustc))/../lib/rustlib/x86_64-pc-windows-gnu/lib
     - cargo build --release --target=x86_64-pc-windows-gnu
     - rm -r -f files
     - mkdir files
@@ -78,7 +73,6 @@ windows-optimized:
 cratesio:
   stage: publish
   script:
-    - rustup default nightly
     - rm -r -f files
     - cargo login $CARGO_LOGIN
     - cargo package
@@ -93,7 +87,6 @@ cratesio:
 clippy:
   stage: post-run
   script:
-    - rustup default nightly
-    - rustup component add clippy-preview
+    - rustup component add clippy
     - cargo clippy
   allow_failure: true
